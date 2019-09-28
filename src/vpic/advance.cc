@@ -22,6 +22,8 @@ int vpic_simulation::advance(void) {
 
   // Sort the particles for performance if desired.
 
+
+  // Sortowanie można łatwo zrobić na gpu
   LIST_FOR_EACH( sp, species_list )
     if( (sp->sort_interval>0) && ((step() % sp->sort_interval)==0) ) {
       if( rank()==0 ) MESSAGE(( "Performance sorting \"%s\"", sp->name ));
@@ -33,6 +35,7 @@ int vpic_simulation::advance(void) {
   // empty and all particles should be inside the local computational domain.
   // Advance the particle lists.
 
+  // tutaj nic się nie dzieje z cząstkami    
   if( species_list )
     TIC clear_accumulator_array( accumulator_array ); TOC( clear_accumulators, 1 );
 
@@ -42,10 +45,12 @@ int vpic_simulation::advance(void) {
   // yields a first order accurate Trotter factorization (not a second
   // order accurate factorization).
 
+  // tutaj coś potencjalnie może się dziać KURWA MAĆ
   if( collision_op_list )
     TIC apply_collision_op_list( collision_op_list ); TOC( collision_model, 1 );
   TIC user_particle_collisions(); TOC( user_particle_collisions, 1 );
 
+  // tutaj wiadomo; TODO sprawdzić ile jest tych rzeczy na species_list, bo może da się to zrobić w miarę równolegle ze streamami
   LIST_FOR_EACH( sp, species_list )
     TIC advance_p( sp, accumulator_array, interpolator_array ); TOC( advance_p, 1 );
 
@@ -55,6 +60,7 @@ int vpic_simulation::advance(void) {
   // be done after advance_p and before guard list processing. Note:
   // user_particle_injection should be a stub if species_list is empty.
 
+  // KURWA MAĆ nie iwadomo co tu się może stać
   if( emitter_list )
     TIC apply_emitter_list( emitter_list ); TOC( emission_model, 1 );
   TIC user_particle_injection(); TOC( user_particle_injection, 1 );
@@ -62,19 +68,26 @@ int vpic_simulation::advance(void) {
   // This should be after the emission and injection to allow for the
   // possibility of thread parallelizing these operations
 
+  // nie dotyka cząstek, ergo można zostawić tak jak jest
   if( species_list )
     TIC reduce_accumulator_array( accumulator_array ); TOC( reduce_accumulators, 1 );
 
-  // At this point, most particle positions are at r_1 and u_{1/2}. Particles
+  // At this point, most particle positions are at r_1 and u_{1/2} (cokolwiek to kurwa znaczy). Particles
   // that had boundary interactions are now on the guard list. Process the
   // guard lists. Particles that absorbed are added to rhob (using a corrected
   // local accumulation).
 
+  // Boundary_p zajmuje się wysyłaniem (i odbieraniem?) cząstek od innych ranków
+  // boundary p jest długa i syfna, ale nie robi nic poza wysyłaniem cząstek z movers
+  // i odbieraniem cząsten wraz z wrzucaniem ich na tablicę p
   TIC
     for( int round=0; round<num_comm_round; round++ )
       boundary_p( particle_bc_list, species_list,
                   field_array, accumulator_array );
-  TOC( boundary_p, num_comm_round );
+      TOC( boundary_p, num_comm_round );
+  // wyjebywanie usuwanych cząsteczek z tablic cząstek, w miarę prosty kod
+  // wiadomo jak przenieść na gpu zwłaszcza że wyjebywanych cząsteczek powinno być nie tak dużo
+  // TODO przetestować ile ekperymentalnie właściwie ich będzie (rząd wielkości)
   LIST_FOR_EACH( sp, species_list ) {
     if( sp->nm && verbose )
       WARNING(( "Removing %i particles associated with unprocessed %s movers (increase num_comm_round)",
@@ -86,6 +99,8 @@ int vpic_simulation::advance(void) {
     // in fact go out of bounds of the voxel indexing space. Removal is in
     // reverse order for back filling. Particle charge is accumulated to the
     // mesh before removing the particle.
+    
+    
     int nm = sp->nm;
     particle_mover_t * RESTRICT ALIGNED(16)  pm = sp->pm + sp->nm - 1;
     particle_t * RESTRICT ALIGNED(128) p0 = sp->p;
@@ -100,9 +115,10 @@ int vpic_simulation::advance(void) {
     sp->nm = 0;
   }
 
-  // At this point, all particle positions are at r_1 and u_{1/2}, the
-  // guard lists are empty and the accumulators on each processor are current.
+  // At this point, all particle positions are at r_1 and u_{1/2} (cokolwiek to kurwa znaczy), the
+  // guard lists are empty and the accumulators on each processor are current (cokolwiek to kurwa znaczy).
   // Convert the accumulators into currents.
+  // co kurwa robią akumulatory? (chyba akumulują pola z cząsteczek? idk)
 
   TIC FAK->clear_jf( field_array ); TOC( clear_jf, 1 );
   if( species_list )
@@ -119,7 +135,7 @@ int vpic_simulation::advance(void) {
   TIC user_current_injection(); TOC( user_current_injection, 1 );
 
   // Half advance the magnetic field from B_0 to B_{1/2}
-
+  // czy advance_b i advance_e dotykają cząstek?
   TIC FAK->advance_b( field_array, 0.5 ); TOC( advance_b, 1 );
 
   // Advance the electric field from E_0 to E_1
@@ -138,11 +154,16 @@ int vpic_simulation::advance(void) {
 
   // Divergence clean e
 
+  // to się odbywa raz na kilka iteracji więc potencjalnie może być wolne
   if( (clean_div_e_interval>0) && ((step() % clean_div_e_interval)==0) ) {
     if( rank()==0 ) MESSAGE(( "Divergence cleaning electric field" ));
 
     TIC FAK->clear_rhof( field_array ); TOC( clear_rhof,1 );
-    if( species_list ) TIC LIST_FOR_EACH( sp, species_list ) accumulate_rho_p( field_array, sp ); TOC( accumulate_rho_p, species_list->id );
+    
+    // accumulate_rho_p to redukcja ładunku do tablicy pól łatwo na gpu TODO
+    if( species_list )
+      TIC LIST_FOR_EACH( sp, species_list ) accumulate_rho_p( field_array, sp ); TOC( accumulate_rho_p, species_list->id );
+    
     TIC FAK->synchronize_rho( field_array ); TOC( synchronize_rho, 1 );
 
     for( int round=0; round<num_div_e_round; round++ ) {
@@ -156,7 +177,7 @@ int vpic_simulation::advance(void) {
   }
 
   // Divergence clean b
-
+  // to się odbywa raz na kilka iteracji więc może być wolne
   if( (clean_div_b_interval>0) && ((step() % clean_div_b_interval)==0) ) {
     if( rank()==0 ) MESSAGE(( "Divergence cleaning magnetic field" ));
 
@@ -194,7 +215,7 @@ int vpic_simulation::advance(void) {
   }
 
   // Let the user compute diagnostics
-
+  // tu potencjalnie też user może coś zepsuć
   TIC user_diagnostics(); TOC( user_diagnostics, 1 );
 
   // "return step()!=num_step" is more intuitive. But if a checkpt

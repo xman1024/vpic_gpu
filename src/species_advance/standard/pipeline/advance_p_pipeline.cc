@@ -199,7 +199,7 @@ advance_p_pipeline_scalar( advance_p_pipeline_args_t * args,
       a[offset+1] += v1;                                                \
       a[offset+2] += v2;                                                \
       a[offset+3] += v3
-
+// tutaj będzie potrzebna redukcyjka
       ACCUMULATE_J( x, y, z, 0 );
       ACCUMULATE_J( y, z, x, 4 );
       ACCUMULATE_J( z, x, y, 8 );

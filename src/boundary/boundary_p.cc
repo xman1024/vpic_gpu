@@ -169,7 +169,7 @@ boundary_p( particle_bc_t       * RESTRICT pbc_list,
     n_ci = 0;
 
     // For each species, load the movers
-
+    // UWAGA TODO zrobić mądrzejsze wyjmowanie cząstek z pamięci karty (jednym transferem jakoś)
     LIST_FOR_EACH( sp, sp_list ) {
       const float   sp_q  = sp->q;
       const int32_t sp_id = sp->id;
@@ -325,7 +325,7 @@ boundary_p( particle_bc_t       * RESTRICT pbc_list,
     // enough to guarantee successful injection.  (If we broke down
     // the n_recv[face] by species before sending it, we could be
     // tighter on memory footprint here.)
-
+    // UWAGA tu jest jakaś logika związana z wrzucaniem cząstek na wektory
     int max_inj = n_ci;
     for( face=0; face<6; face++ )
       if( shared[face] ) max_inj += n_recv[face];

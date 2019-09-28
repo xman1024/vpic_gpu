@@ -36,7 +36,7 @@ typedef struct particle {
 
 typedef struct particle_mover {
   float dispx, dispy, dispz; // Displacement of particle
-  int32_t i;                 // Index of the particle to move
+  int32_t i;                 // Index of the particle to move (voxel of that particle)
 } particle_mover_t;
 
 // NOTE: THE LAYOUT OF A PARTICLE_INJECTOR _MUST_ BE COMPATIBLE WITH
@@ -58,7 +58,7 @@ typedef struct species {
 
   int np, max_np;                     // Number and max local particles
   particle_t * ALIGNED(128) p;        // Array of particles for the species
-
+  // Tutaj chyba są przenoszone cząsteczki w advance_p
   int nm, max_nm;                     // Number and max local movers in use
   particle_mover_t * ALIGNED(128) pm; // Particle movers
 
