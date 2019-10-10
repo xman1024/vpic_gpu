@@ -1,15 +1,15 @@
-#------------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # Copyright (c) 2014 Los Alamos National Security, LLC
 # All rights reserved.
 #------------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.1)
-
+# UWAGA tylko cmake version 3.9.6 działa!
 #~----------------------------------------------------------------------------~#
 # VPIC project configuration
 #~----------------------------------------------------------------------------~#
 
-project(vpic)
+project(vpic C CXX CUDA)
 
 #------------------------------------------------------------------------------#
 # If a C++11 compiler is available, then set the appropriate flags
@@ -117,7 +117,6 @@ endif()
 #------------------------------------------------------------------------------#
 # OpenSSL
 #------------------------------------------------------------------------------#
-
 if(ENABLE_OPENSSL)
   find_package(OpenSSL REQUIRED)
 
@@ -335,7 +334,7 @@ file(COPY ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/vpic
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VPIC_CXX_FLAGS}")
 
-file(GLOB_RECURSE VPIC_SRC src/*.c src/*.cc)
+file(GLOB_RECURSE VPIC_SRC src/*.c src/*.cc src/*.cu)
 file(GLOB_RECURSE VPIC_NOT_SRC
   src/util/v4/test/v4.cc
   src/util/v8/test/v8.cc
