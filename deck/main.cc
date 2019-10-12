@@ -9,6 +9,8 @@
  */
 
 #include "vpic/vpic.h"
+#include "cuda/utils.h"
+//#include <cuda.h>
 
 // The simulation variable is set up this way so both the checkpt
 // service and main can see it.  This allows main to find where
@@ -63,9 +65,12 @@ void checkpt(const char* fbase, int tag)
  */
 int main(int argc, char** argv)
 {
+    detect_cuda_init();
 
     // Initialize underlying threads and services
     boot_services( &argc, &argv );
+    
+
 
     // TODO: this would be better if it was bool-like in nature
     const char * fbase = strip_cmdline_string(&argc, &argv, "--restore", NULL);

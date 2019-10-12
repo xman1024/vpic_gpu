@@ -9,7 +9,6 @@
  */
 
 #include "vpic.h"
-#include "../hello.h"
 
 #define FAK field_array->kernel
 
@@ -17,7 +16,6 @@ int vpic_simulation::advance(void) {
   species_t *sp;
   double err;
   
-  fun();
   // Determine if we are done ... see note below why this is done here
 
   if( num_step>0 && step()>=num_step ) return 0;

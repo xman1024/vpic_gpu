@@ -1,6 +1,7 @@
 #define IN_spa
 
 #include "../species_advance.h"
+#include "../../cuda/advance_particle.h"
 
 //----------------------------------------------------------------------------//
 // Top level function to select and call particle advance function using the
@@ -15,5 +16,6 @@ advance_p( species_t * RESTRICT sp,
 {
   // Once more options are available, this should be conditionally executed
   // based on user choice.
-  advance_p_pipeline( sp, aa, ia );
+  advance_p_cuda( sp, aa, ia );
+  // advance_p_pipeline( sp, aa, ia );
 }
