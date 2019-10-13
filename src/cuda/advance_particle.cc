@@ -5,6 +5,9 @@
 #define IN_spa
 #include "../species_advance/standard/pipeline/spa_private.h"
 
+
+
+
 void advance_p_cuda( species_t * RESTRICT sp,
     accumulator_array_t * RESTRICT aa,
     const interpolator_array_t * RESTRICT ia )
@@ -57,7 +60,7 @@ void advance_p_cuda( species_t * RESTRICT sp,
   if ( max_nm < 0 ) max_nm = 0;
 
   //DISTRIBUTE( max_nm, 1, 0, 0, itmp, max_nm );
-   itmp = 0;
+  itmp = 0;
   max_nm = sp->max_nm - itmp;
 
   pm   = sp->pm + itmp;

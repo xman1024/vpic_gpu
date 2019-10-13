@@ -31,6 +31,12 @@ typedef struct particle {
   float w;          // Particle weight (number of physical particles)
 } particle_t;
 
+static double diff(particle_t p, particle_t q) {
+#define COMP(v) abs(p.v - q.v)
+  return COMP(dx) + COMP(dy) + COMP(dz) + COMP(ux) + COMP(uy) + COMP(uz);
+#undef COMP
+}
+
 // WARNING: FUNCTIONS THAT USE A PARTICLE_MOVER ASSUME THAT EVERYBODY
 // WHO USES THAT PARTICLE MOVER WILL HAVE ACCESS TO PARTICLE ARRAY
 
