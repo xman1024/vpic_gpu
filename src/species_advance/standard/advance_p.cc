@@ -23,7 +23,7 @@ advance_p( species_t * RESTRICT sp,
   for (int i = 0; i < sp2.np; ++i)
     sp2.p[i] = sp->p[i];
   advance_p_cuda( &sp2, aa, ia );
-  //std::cerr << "OK" << std::endl;
+  std::cerr << "OK" << std::endl;
   advance_p_pipeline( sp, aa, ia );
   double tot_diff = 0.;
   DEBUG(sp2.np)
