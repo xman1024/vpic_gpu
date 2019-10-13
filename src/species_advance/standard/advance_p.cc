@@ -2,7 +2,7 @@
 
 #include "../species_advance.h"
 #include "../../cuda/advance_particle.h"
-
+#include <iostream>
 //----------------------------------------------------------------------------//
 // Top level function to select and call particle advance function using the
 // desired particle advance abstraction.  Currently, the only abstraction
@@ -17,5 +17,6 @@ advance_p( species_t * RESTRICT sp,
   // Once more options are available, this should be conditionally executed
   // based on user choice.
   advance_p_cuda( sp, aa, ia );
-  // advance_p_pipeline( sp, aa, ia );
+  //std::cerr << "OK" << std::endl;
+  //advance_p_pipeline( sp, aa, ia );
 }
