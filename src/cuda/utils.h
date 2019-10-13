@@ -5,7 +5,6 @@
 #include <cuda_runtime_api.h>
 #include <iostream>
 
-
 void detect_cuda_init();
 
 #define CUDA_CHECK(error)                                                    \
@@ -18,15 +17,15 @@ void detect_cuda_init();
         }                                                                    \
     }
 
-template<class C>
+template <class C>
 void device_set(C* var, C val) {
     CUDA_CHECK(cudaMemcpy(var, &val, sizeof(C), cudaMemcpyHostToDevice));
 }
-template<class C>
+template <class C>
 C device_fetch(C* var) {
     C res;
     CUDA_CHECK(cudaMemcpy(&res, var, sizeof(C), cudaMemcpyDeviceToHost));
     return res;
 }
 
-#endif // __CUDA_UTILS__H__
+#endif  // __CUDA_UTILS__H__
