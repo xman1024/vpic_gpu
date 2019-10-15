@@ -1,6 +1,7 @@
 #include "../util/util_base.h"
 #include "advance_particle.h"
 #include "debug.h"
+#include "perf_measure.h"
 #include "utils.h"
 
 __global__ void particle_move_kernel(particle_t* p0,
@@ -22,13 +23,13 @@ __global__ void particle_move_kernel(particle_t* p0,
     float v0, v1, v2, v3, v4, v5;
     float* a;
     int ii;
+
     particle_mover_t local_pm;
 
-    int i            = 0;
-    const int stride = 1;
+    int i      = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
 
     for (; i < n; i += stride) {
-        // DEBUG(i)
         particle_t* p = p0 + i;
         dx            = p->dx;  // Load position
         dy            = p->dy;
@@ -136,10 +137,10 @@ __global__ void particle_move_kernel(particle_t* p0,
     v1 -= v5;        /* v1 = q ux [ (1+dy)(1-dz) - uy*uz/3 ] */ \
     v2 -= v5;        /* v2 = q ux [ (1-dy)(1+dz) - uy*uz/3 ] */ \
     v3 += v5;        /* v3 = q ux [ (1+dy)(1+dz) + uy*uz/3 ] */ \
-    a[offset + 0] += v0;                                        \
-    a[offset + 1] += v1;                                        \
-    a[offset + 2] += v2;                                        \
-    a[offset + 3] += v3
+    atomicAdd(&a[offset + 0], v0);                              \
+    atomicAdd(&a[offset + 1], v1);                              \
+    atomicAdd(&a[offset + 2], v2);                              \
+    atomicAdd(&a[offset + 3], v3);
             // tutaj będzie potrzebna redukcyjka
             ACCUMULATE_J(x, y, z, 0);
             ACCUMULATE_J(y, z, x, 4);
@@ -150,11 +151,12 @@ __global__ void particle_move_kernel(particle_t* p0,
 
         else  // Unlikely
         {
-            local_pm.dispx      = ux;
-            local_pm.dispy      = uy;
-            local_pm.dispz      = uz;
-            local_pm.i          = p - p0;
-            pmovers[(*moved)++] = local_pm;
+            local_pm.dispx    = ux;
+            local_pm.dispy    = uy;
+            local_pm.dispz    = uz;
+            local_pm.i        = p - p0;
+            int save_idx      = atomicAdd(moved, 1);
+            pmovers[save_idx] = local_pm;
         }
     }
 }
@@ -173,26 +175,19 @@ void run_kernel(particle_t* p0,  // wielkość n
                 const int max_nm,
                 int* nm,
                 int* skipped) {
+    // Rozmiary kopiowanych tablic
     const int accumulator_size  = POW2_CEIL((g->nx + 2) * (g->ny + 2) * (g->nz + 2), 2);
     const int interpolator_size = (g->nx + 2) * (g->ny + 2) * (g->nz + 2);
 
     particle_mover_t* pmovers = new particle_mover_t[n];
     int moved                 = 0;
 
-    // particle_move_kernel(particle_t* p0, interpolator_t *f0,
-    //   particle_mover_t* pmovers,  accumulator_t* a0,
-    //   int n,
-    //   int* moved,
-    //   const float qdt_2mc,
-    //    const float cdt_dx,
-    //    const float cdt_dy,
-    //    const float cdt_dz,
-    //    const float qsp)
     particle_t* device_p0;
     interpolator_t* device_f0;
     accumulator_t* device_a0;
     particle_mover_t* device_pmovers;
     int* device_moved;
+
     // Alokacja
     CUDA_CHECK(cudaMalloc((void**)&device_p0, sizeof(particle_t) * n));
     CUDA_CHECK(
@@ -200,21 +195,24 @@ void run_kernel(particle_t* p0,  // wielkość n
     CUDA_CHECK(cudaMalloc((void**)&device_a0, sizeof(accumulator_t) * accumulator_size));
     CUDA_CHECK(cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
     CUDA_CHECK(cudaMalloc((void**)&device_moved, sizeof(int)));
-    // TODO kopiowanie tam
+
+    // Kopiowanie tam
     CUDA_CHECK(cudaMemcpy(device_p0, p0, sizeof(particle_t) * n, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(device_f0, f0, sizeof(interpolator_t) * interpolator_size,
                           cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(device_a0, a0, sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyHostToDevice));
-    device_set(device_moved, 0);
-    // wywołanie kernela
-    particle_move_kernel<<<1, 1>>>(device_p0, device_f0, device_pmovers, device_a0, n,
-                                   device_moved, qdt_2mc, cdt_dx, cdt_dy, cdt_dz, qsp);
+    device_set_var(device_moved, 0);
+
+    // wywołanie kernela TODO liczba bloków powinna z grubsza odpowiadać liczbie SMów
+    particle_move_kernel<<<1024, 1024>>>(device_p0, device_f0, device_pmovers, device_a0,
+                                         n, device_moved, qdt_2mc, cdt_dx, cdt_dy, cdt_dz,
+                                         qsp);
     // kopiowanie z powrotem
     CUDA_CHECK(cudaMemcpy(p0, device_p0, sizeof(particle_t) * n, cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaMemcpy(a0, device_a0, sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));
-    moved = device_fetch(device_moved);
+    moved = device_fetch_var(device_moved);
     CUDA_CHECK(cudaMemcpy(pmovers, device_pmovers, sizeof(particle_mover_t) * moved,
                           cudaMemcpyDeviceToHost));
     // Free
@@ -224,9 +222,12 @@ void run_kernel(particle_t* p0,  // wielkość n
     CUDA_CHECK(cudaFree(device_pmovers));
     CUDA_CHECK(cudaFree(device_moved));
 
-    // ---
+    // TODO ten kawałek trzeba przenieść na cudę w następnej kolejności, bo
+    // obok kopiowań jest najbardziej kosztowny
+    PERF_START(move_p)
     for (int i = 0; i < moved; ++i) {
-        if (move_p(p0, &pmovers[i], a0, g, qsp))  // Unlikely // co to robi?
+        if (move_p(p0, &pmovers[i], a0, g,
+                   qsp))  // Unlikely
         {
             if (*nm < max_nm) {
                 pm[(*nm)++] = pmovers[i];
@@ -237,7 +238,6 @@ void run_kernel(particle_t* p0,  // wielkość n
             }
         }
     }
+    PERF_END(move_p)
     delete[] pmovers;
-    DEBUG(*nm)
-    DEBUG(moved)
 }

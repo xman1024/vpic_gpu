@@ -53,9 +53,9 @@ advance_p_pipeline_scalar( advance_p_pipeline_args_t * args,
 
   // Determine which quads of particles quads this pipeline processes.
 
-  DEBUG(args->np)
-  DEBUG(pipeline_rank)
-  DEBUG(n_pipeline)
+  // DEBUG(args->np)
+  // DEBUG(pipeline_rank)
+  // DEBUG(n_pipeline)
   DISTRIBUTE( args->np, 16, pipeline_rank, n_pipeline, itmp, n );
 
   p = args->p0 + itmp;
@@ -87,7 +87,7 @@ advance_p_pipeline_scalar( advance_p_pipeline_args_t * args,
           POW2_CEIL( (args->nx+2)*(args->ny+2)*(args->nz+2), 2 );
 
   // Process particles for this pipeline.
-  DEBUG(n)
+  //DEBUG(n)
 
   for( ; n; n--, p++ )
   {
@@ -293,7 +293,7 @@ advance_p_pipeline( species_t * RESTRICT sp,
   // However, it is worth reconsidering this at some point in the
   // future.
 
-  DEBUG(N_PIPELINE)
+  //DEBUG(N_PIPELINE)
 
   EXEC_PIPELINES( advance_p, args, 0 );
 
