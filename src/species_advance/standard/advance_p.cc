@@ -22,6 +22,14 @@ double abs_dif(particle_t* p1, particle_t* p2, size_t count) {
     return res;
 }
 
+double peak_dif(particle_t* p1, particle_t* p2, size_t count) {
+    double res = 0.;
+    for (size_t i = 0; i < count; ++i) {
+        res = std::max(res, diff(p1[i], p2[i]));
+    }
+    return res;
+}
+
 void advance_p(species_t* RESTRICT sp,
                accumulator_array_t* RESTRICT aa,
                const interpolator_array_t* RESTRICT ia) {
@@ -44,7 +52,8 @@ void advance_p(species_t* RESTRICT sp,
 
     double tot_difference = abs_dif(sp2.p, sp->p, sp->np);
     std::cerr << std::setprecision(13) << "!!!! Total difference = " << tot_difference
-              << " avg difference = " << tot_difference / sp->np << std::endl;
+              << " avg difference = " << tot_difference / sp->np
+              << " peak difference = " << peak_dif(sp2.p, sp->p, sp->np) << std::endl;
 
     delete[] sp2.p;
     // CUDA_CHECK(cudaFreeHost(sp2.p));
