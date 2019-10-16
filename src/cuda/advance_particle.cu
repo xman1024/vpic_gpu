@@ -180,7 +180,6 @@ void run_kernel(particle_t* p0,  // wielkość n
     const int accumulator_size  = POW2_CEIL(grid_size, 2);
     const int interpolator_size = grid_size;
 
-    // particle_mover_t* pmovers = new particle_mover_t[n];
     int moved = 0;
 
     particle_t* device_p0;
@@ -240,11 +239,4 @@ void run_kernel(particle_t* p0,  // wielkość n
     CUDA_CHECK(cudaFree(device_neighbours));
     CUDA_CHECK(cudaFree(device_moved));
     CUDA_CHECK(cudaFree(device_moved_2));
-
-    // PERF_START(move_p)
-    // cuda_move_p(p0, pmovers, moved, a0, g,
-    //        qsp, nm, pm);
-    // PERF_END(move_p)
-
-    // delete[] pmovers;
 }

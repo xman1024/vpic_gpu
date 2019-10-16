@@ -35,7 +35,6 @@ void advance_p(species_t* RESTRICT sp,
                const interpolator_array_t* RESTRICT ia) {
     PERF_START(advance_p)
     species_t sp2 = *sp;
-    DEBUG(aa->stride)
 
     sp2.p = new particle_t[sp2.np];
     // CUDA_CHECK(cudaMallocHost((void**)&sp2.p, sp2.np * sizeof(particle_t)));
