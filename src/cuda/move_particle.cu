@@ -22,8 +22,8 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
     int64_t neighbor;
     float* a;
 
-    int idx          = 0;
-    const int stride = 1;
+    int idx    = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
 
     for (; idx < n; idx += stride) {
         particle_t* p = p0 + pm[idx].i;
@@ -92,10 +92,10 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
     v1 -= v5;           /* v1 = q ux [ (1+dy)(1-dz) - uy*uz/3 ] */ \
     v2 -= v5;           /* v2 = q ux [ (1-dy)(1+dz) - uy*uz/3 ] */ \
     v3 += v5;           /* v3 = q ux [ (1+dy)(1+dz) + uy*uz/3 ] */ \
-    a[0] += v0;                                                    \
-    a[1] += v1;                                                    \
-    a[2] += v2;                                                    \
-    a[3] += v3
+    atomicAdd(&a[0], v0);                                          \
+    atomicAdd(&a[1], v1);                                          \
+    atomicAdd(&a[2], v2);                                          \
+    atomicAdd(&a[3], v3)
             accumulate_j(x, y, z);
             a += 4;
             accumulate_j(y, z, x);
@@ -146,8 +146,9 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
                 // Cannot handle the boundary condition here.  Save the updated
                 // particle position, face it hit and update the remaining
                 // displacement in the particle mover.
-                p->i             = 8 * p->i + face;
-                pm_save[(*nm)++] = pm[idx];
+                p->i              = 8 * p->i + face;
+                int save_idx      = atomicAdd(nm, 1);
+                pm_save[save_idx] = pm[idx];
                 break;
             }
 
@@ -155,8 +156,8 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
             // particle coordinate system and keep moving the particle.
 
             p->i = neighbor - rangel;  // Compute local index of neighbor
-            /**/                          // Note: neighbor - g->rangel < 2^31 / 6
-            (&(p->dx))[axis] = -v0;       // Convert coordinate system
+            /**/                       // Note: neighbor - g->rangel < 2^31 / 6
+            (&(p->dx))[axis] = -v0;    // Convert coordinate system
         }
     }
 }
@@ -171,6 +172,6 @@ void cuda_move_p(particle_t* p0,
                  particle_mover_t* pm_save,
                  int64_t rangeh,
                  int64_t rangel) {
-    cuda_move_p_kernel<<<1, 1>>>(p0, pm, n, a0, neighbours, qsp, nm, pm_save, rangeh,
-                                 rangel);
+    cuda_move_p_kernel<<<1024, 1024>>>(p0, pm, n, a0, neighbours, qsp, nm, pm_save,
+                                       rangeh, rangel);
 }

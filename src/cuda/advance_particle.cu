@@ -26,8 +26,8 @@ __global__ void particle_move_kernel(particle_t* p0,
 
     particle_mover_t local_pm;
 
-    int i      = blockIdx.x * blockDim.x + threadIdx.x;
-    int stride = blockDim.x * gridDim.x;
+    int i            = blockIdx.x * blockDim.x + threadIdx.x;
+    const int stride = blockDim.x * gridDim.x;
 
     for (; i < n; i += stride) {
         particle_t* p = p0 + i;
@@ -210,8 +210,8 @@ void run_kernel(particle_t* p0,  // wielkość n
                           cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(device_a0, a0, sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(device_neighbours, g->neighbor,
-                          sizeof(int64_t) * grid_size * 6, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(device_neighbours, g->neighbor, sizeof(int64_t) * grid_size * 6,
+                          cudaMemcpyHostToDevice));
     device_set_var(device_moved, 0);
     device_set_var(device_moved_2, 0);
 
@@ -222,15 +222,15 @@ void run_kernel(particle_t* p0,  // wielkość n
 
     moved = device_fetch_var(device_moved);
 
-    cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours,
-                qsp, device_moved_2, device_pm, g->rangeh, g->rangel);
+    cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours, qsp,
+                device_moved_2, device_pm, g->rangeh, g->rangel);
     // kopiowanie z powrotem
     CUDA_CHECK(cudaMemcpy(p0, device_p0, sizeof(particle_t) * n, cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaMemcpy(a0, device_a0, sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));
     *nm = device_fetch_var(device_moved_2);
-    CUDA_CHECK(
-        cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm), cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm),
+                          cudaMemcpyDeviceToHost));
     // Free
     CUDA_CHECK(cudaFree(device_p0));
     CUDA_CHECK(cudaFree(device_f0));
