@@ -222,24 +222,10 @@ void run_kernel(particle_t* p0,  // wielkość n
     CUDA_CHECK(cudaFree(device_pmovers));
     CUDA_CHECK(cudaFree(device_moved));
 
-    // TODO ten kawałek trzeba przenieść na cudę w następnej kolejności, bo
-    // obok kopiowań jest najbardziej kosztowny
     PERF_START(move_p)
-    //for (int i = 0; i < moved; ++i) {
-        cuda_move_p(p0, pmovers, moved, a0, g,
+    cuda_move_p(p0, pmovers, moved, a0, g,
             qsp, nm, pm);
-        // if (cuda_move_p(p0, pmovers, a0, g,
-        //            qsp, nm, skipped, i))  // Unlikely
-        // {
-        //     if (*nm < max_nm) {
-        //         pm[(*nm)++] = pmovers[i];
-        //     }
-
-        //     else {
-        //         (*skipped)++;  // Unlikely
-        //     }
-        // }
-   // }
     PERF_END(move_p)
+    
     delete[] pmovers;
 }
