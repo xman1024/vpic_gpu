@@ -4,14 +4,16 @@
 #include "perf_measure.h"
 #include "utils.h"
 
-void cuda_move_p(particle_t* p0,
-                 particle_mover_t* pm,
-                 int n,
-                 accumulator_t* a0,
-                 const grid_t* g,
-                 const float qsp,
-                 int* nm,
-                 particle_mover_t* pm_save) {
+__global__ void cuda_move_p_kernel(particle_t* p0,
+                                   particle_mover_t* pm,
+                                   int n,
+                                   accumulator_t* a0,
+                                   int64_t* neighbours,
+                                   const float qsp,
+                                   int* nm,
+                                   particle_mover_t* pm_save,
+                                   int64_t rangeh,
+                                   int64_t rangel) {
     float s_midx, s_midy, s_midz;
     float s_dispx, s_dispy, s_dispz;
     float s_dir[3];
@@ -23,7 +25,6 @@ void cuda_move_p(particle_t* p0,
     int idx          = 0;
     const int stride = 1;
 
-    
     for (; idx < n; idx += stride) {
         particle_t* p = p0 + pm[idx].i;
 
@@ -130,7 +131,7 @@ void cuda_move_p(particle_t* p0,
             face = axis;
             if (v0 > 0)
                 face += 3;
-            neighbor = g->neighbor[6 * p->i + face];
+            neighbor = neighbours[6 * p->i + face];
 
             if (UNLIKELY(neighbor == reflect_particles)) {
                 // Hit a reflecting boundary condition.  Reflect the particle
@@ -141,7 +142,7 @@ void cuda_move_p(particle_t* p0,
                 continue;
             }
 
-            if (UNLIKELY(neighbor < g->rangel || neighbor > g->rangeh)) {
+            if (UNLIKELY(neighbor < rangel || neighbor > rangeh)) {
                 // Cannot handle the boundary condition here.  Save the updated
                 // particle position, face it hit and update the remaining
                 // displacement in the particle mover.
@@ -153,9 +154,23 @@ void cuda_move_p(particle_t* p0,
             // Crossed into a normal voxel.  Update the voxel index, convert the
             // particle coordinate system and keep moving the particle.
 
-            p->i = neighbor - g->rangel;  // Compute local index of neighbor
+            p->i = neighbor - rangel;  // Compute local index of neighbor
             /**/                          // Note: neighbor - g->rangel < 2^31 / 6
             (&(p->dx))[axis] = -v0;       // Convert coordinate system
         }
     }
+}
+
+void cuda_move_p(particle_t* p0,
+                 particle_mover_t* pm,
+                 int n,
+                 accumulator_t* a0,
+                 int64_t* neighbours,
+                 const float qsp,
+                 int* nm,
+                 particle_mover_t* pm_save,
+                 int64_t rangeh,
+                 int64_t rangel) {
+    cuda_move_p_kernel<<<1, 1>>>(p0, pm, n, a0, neighbours, qsp, nm, pm_save, rangeh,
+                                 rangel);
 }

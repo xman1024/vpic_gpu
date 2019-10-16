@@ -10,9 +10,11 @@ void cuda_move_p(particle_t* p0,
                  particle_mover_t* pm,
                  int n,
                  accumulator_t* a0,
-                 const grid_t* g,
+                 int64_t* neighbours,
                  const float qsp,
                  int* nm,
-                 particle_mover_t* pm_save);
+                 particle_mover_t* pm_save,
+                 int64_t rangeh,
+                 int64_t rangel);
 
 #endif  // __ADVANCE_PARTICLE__H__
