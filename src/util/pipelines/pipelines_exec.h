@@ -7,9 +7,9 @@
 
 #include "pipelines.h"
 
+#include "../v16/v16.h"
 #include "../v4/v4.h"
 #include "../v8/v8.h"
-#include "../v16/v16.h"
 
 //----------------------------------------------------------------------------//
 // Make sure that pipelines_exec_pth.h and pipelines_exec_omp.h can only be
@@ -52,4 +52,4 @@
 
 #undef THREAD_REROUTE
 
-#endif // _pipelines_exec_h_ 
+#endif  // _pipelines_exec_h_

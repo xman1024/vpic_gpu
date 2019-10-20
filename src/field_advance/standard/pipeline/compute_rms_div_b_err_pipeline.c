@@ -7,63 +7,56 @@
 
 #include "../../../util/pipelines/pipelines_exec.h"
 
-static void
-compute_rms_div_b_err_pipeline_scalar( pipeline_args_t * args,
-                                       int pipeline_rank,
-                                       int n_pipeline )
-{
-  const field_t * ALIGNED(128) f = args->f;
-  const grid_t  *              g = args->g;
-                             
-  const field_t * ALIGNED(16) f0;
-  int x, y, z, n_voxel;
+static void compute_rms_div_b_err_pipeline_scalar(pipeline_args_t* args,
+                                                  int pipeline_rank,
+                                                  int n_pipeline) {
+    const field_t* ALIGNED(128) f = args->f;
+    const grid_t* g               = args->g;
 
-  const int nx = g->nx;
-  const int ny = g->ny;
-  const int nz = g->nz;
+    const field_t* ALIGNED(16) f0;
+    int x, y, z, n_voxel;
 
-  double err;
+    const int nx = g->nx;
+    const int ny = g->ny;
+    const int nz = g->nz;
 
-  // Process voxels assigned to this pipeline
+    double err;
 
-  DISTRIBUTE_VOXELS( 1,nx, 1,ny, 1,nz, 16,
-                     pipeline_rank, n_pipeline,
-                     x, y, z, n_voxel );
-  
-  f0 = &f(x,y,z);
+    // Process voxels assigned to this pipeline
 
-  err = 0;
-  for( ; n_voxel; n_voxel-- )
-  {
-    err += f0->div_b_err*f0->div_b_err;
-    f0++;
+    DISTRIBUTE_VOXELS(1, nx, 1, ny, 1, nz, 16, pipeline_rank, n_pipeline, x, y,
+                      z, n_voxel);
 
-    x++;
-    if ( x > nx )
-    {
-      x=1, y++;
-      if( y>ny ) y=1, z++;
-      f0 = &f(x,y,z);
+    f0 = &f(x, y, z);
+
+    err = 0;
+    for (; n_voxel; n_voxel--) {
+        err += f0->div_b_err * f0->div_b_err;
+        f0++;
+
+        x++;
+        if (x > nx) {
+            x = 1, y++;
+            if (y > ny)
+                y = 1, z++;
+            f0 = &f(x, y, z);
+        }
     }
-  }
-    
-  args->err[pipeline_rank] = err;
+
+    args->err[pipeline_rank] = err;
 }
 
-double
-compute_rms_div_b_err_pipeline( const field_array_t * fa )
-{
-  pipeline_args_t args[1];
-  int p;
-  
-  double err = 0, local[2], global[2];
+double compute_rms_div_b_err_pipeline(const field_array_t* fa) {
+    pipeline_args_t args[1];
+    int p;
 
-  if ( !fa )
-  {
-    ERROR( ( "Bad args") );
-  }
+    double err = 0, local[2], global[2];
 
-# if 0 // Original non-pipelined version
+    if (!fa) {
+        ERROR(("Bad args"));
+    }
+
+#if 0  // Original non-pipelined version
   field_t * ALIGNED(16) f0;
 
   int z, y, x;
@@ -86,26 +79,25 @@ compute_rms_div_b_err_pipeline( const field_array_t * fa )
       }
     }
   }
-# endif
+#endif
 
-  args->f = fa->f;
-  args->g = fa->g;
+    args->f = fa->f;
+    args->g = fa->g;
 
-  EXEC_PIPELINES( compute_rms_div_b_err, args, 0 );
+    EXEC_PIPELINES(compute_rms_div_b_err, args, 0);
 
-  WAIT_PIPELINES();
+    WAIT_PIPELINES();
 
-  err = 0;
-  for( p = 0; p <= N_PIPELINE; p++ )
-  {
-    err += args->err[p];
-  }
+    err = 0;
+    for (p = 0; p <= N_PIPELINE; p++) {
+        err += args->err[p];
+    }
 
-  local[0] = err * fa->g->dV;
+    local[0] = err * fa->g->dV;
 
-  local[1] = ( fa->g->nx * fa->g->ny * fa->g->nz ) * fa->g->dV;
+    local[1] = (fa->g->nx * fa->g->ny * fa->g->nz) * fa->g->dV;
 
-  mp_allsum_d( local, global, 2 );
+    mp_allsum_d(local, global, 2);
 
-  return fa->g->eps0 * sqrt( global[0] / global[1] );
+    return fa->g->eps0 * sqrt(global[0] / global[1]);
 }

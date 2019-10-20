@@ -7,14 +7,11 @@
 // function.
 //----------------------------------------------------------------------------//
 
-void
-vacuum_clean_div_e( field_array_t * fa )
-{
-  if ( !fa )
-  {
-    ERROR( ( "Bad args" ) );
-  }
+void vacuum_clean_div_e(field_array_t* fa) {
+    if (!fa) {
+        ERROR(("Bad args"));
+    }
 
-  // Conditionally execute this when more abstractions are available.
-  vacuum_clean_div_e_pipeline( fa );
+    // Conditionally execute this when more abstractions are available.
+    vacuum_clean_div_e_pipeline(fa);
 }

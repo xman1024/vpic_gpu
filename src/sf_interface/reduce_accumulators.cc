@@ -7,14 +7,11 @@
 // function.
 //----------------------------------------------------------------------------//
 
-void
-reduce_accumulator_array( accumulator_array_t * RESTRICT aa )
-{
-  if ( !aa )
-  {
-    ERROR( ( "Bad args" ) );
-  }
+void reduce_accumulator_array(accumulator_array_t* RESTRICT aa) {
+    if (!aa) {
+        ERROR(("Bad args"));
+    }
 
-  // Conditionally execute this when more abstractions are available.
-  reduce_accumulator_array_pipeline( aa );
+    // Conditionally execute this when more abstractions are available.
+    reduce_accumulator_array_pipeline(aa);
 }

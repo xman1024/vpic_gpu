@@ -2,45 +2,39 @@
 
 #include "sf_interface_private.h"
 
-void
-checkpt_interpolator_array( const interpolator_array_t * ia )
-{
-  CHECKPT( ia, 1 );
-  CHECKPT_ALIGNED( ia->i, ia->g->nv, 128 );
-  CHECKPT_PTR( ia->g );
+void checkpt_interpolator_array(const interpolator_array_t* ia) {
+    CHECKPT(ia, 1);
+    CHECKPT_ALIGNED(ia->i, ia->g->nv, 128);
+    CHECKPT_PTR(ia->g);
 }
 
-interpolator_array_t *
-restore_interpolator_array( void )
-{
-  interpolator_array_t * ia;
-  RESTORE( ia );
-  RESTORE_ALIGNED( ia->i );
-  RESTORE_PTR( ia->g );
-  return ia;
+interpolator_array_t* restore_interpolator_array(void) {
+    interpolator_array_t* ia;
+    RESTORE(ia);
+    RESTORE_ALIGNED(ia->i);
+    RESTORE_PTR(ia->g);
+    return ia;
 }
 
-interpolator_array_t *
-new_interpolator_array( grid_t * g )
-{
-  interpolator_array_t * ia;
-  if( !g ) ERROR(( "NULL grid" ));
-  MALLOC( ia, 1 );
-  MALLOC_ALIGNED( ia->i, g->nv, 128 );
-  CLEAR( ia->i, g->nv );
-  ia->g = g;
-  REGISTER_OBJECT( ia, checkpt_interpolator_array, restore_interpolator_array,
-                   NULL );
-  return ia;
+interpolator_array_t* new_interpolator_array(grid_t* g) {
+    interpolator_array_t* ia;
+    if (!g)
+        ERROR(("NULL grid"));
+    MALLOC(ia, 1);
+    MALLOC_ALIGNED(ia->i, g->nv, 128);
+    CLEAR(ia->i, g->nv);
+    ia->g = g;
+    REGISTER_OBJECT(ia, checkpt_interpolator_array, restore_interpolator_array,
+                    NULL);
+    return ia;
 }
 
-void
-delete_interpolator_array( interpolator_array_t * ia )
-{
-  if( !ia ) return;
-  UNREGISTER_OBJECT( ia );
-  FREE_ALIGNED( ia->i );
-  FREE( ia );
+void delete_interpolator_array(interpolator_array_t* ia) {
+    if (!ia)
+        return;
+    UNREGISTER_OBJECT(ia);
+    FREE_ALIGNED(ia->i);
+    FREE(ia);
 }
 
 //----------------------------------------------------------------------------//
@@ -48,21 +42,16 @@ delete_interpolator_array( interpolator_array_t * ia )
 // function.
 //----------------------------------------------------------------------------//
 
-void
-load_interpolator_array( interpolator_array_t * RESTRICT ia,
-                         const field_array_t * RESTRICT fa )
-{
-  if ( !ia              ||
-       !fa              ||
-       ia->g != fa->g )
-  {
-    ERROR( ( "Bad args" ) );
-  }
+void load_interpolator_array(interpolator_array_t* RESTRICT ia,
+                             const field_array_t* RESTRICT fa) {
+    if (!ia || !fa || ia->g != fa->g) {
+        ERROR(("Bad args"));
+    }
 
-  // Conditionally execute this when more abstractions are available.
-  load_interpolator_array_pipeline( ia, fa );
+    // Conditionally execute this when more abstractions are available.
+    load_interpolator_array_pipeline(ia, fa);
 
-# if 0 // Original non-pipelined version
+#if 0  // Original non-pipelined version
   for( z=1; z<=nz; z++ ) {
     for( y=1; y<=ny; y++ ) {
 
@@ -129,5 +118,5 @@ load_interpolator_array( interpolator_array_t * RESTRICT ia,
       }
     }
   }
-# endif
+#endif
 }

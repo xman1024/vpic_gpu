@@ -1,23 +1,24 @@
 #ifndef FileUtils_h
 #define FileUtils_h
 
-template<class Policy> class FileUtils_T
-	: public Policy
-	{
-	public:
+#include <stddef.h>
 
-		FileUtils_T() {}
-		~FileUtils_T() {}
+template <class Policy>
+class FileUtils_T : public Policy {
+   public:
+    FileUtils_T() {}
+    ~FileUtils_T() {}
 
-		static int makeDirectory(const char * dirname)
-			{ return Policy::makeDirectory(dirname); }
+    static int makeDirectory(const char* dirname) {
+        return Policy::makeDirectory(dirname);
+    }
 
-		static int getCurrentWorkingDirectory(char * dirname, size_t size)
-			{ return Policy::getCurrentWorkingDirectory(dirname, size); }
+    static int getCurrentWorkingDirectory(char* dirname, size_t size) {
+        return Policy::getCurrentWorkingDirectory(dirname, size);
+    }
 
-	private:
-
-	}; // class FileUtils_T
+   private:
+};  // class FileUtils_T
 
 #if defined USE_MPRELAY
 
@@ -31,7 +32,7 @@ typedef FileUtils_T<StandardUtilsPolicy> FileUtils;
 
 typedef FileUtils_T<P2PUtilsPolicy> FileUtils;
 
-#endif // BUILD
+#endif  // BUILD
 
 #else
 #include "StandardUtilsPolicy.h"
@@ -40,4 +41,4 @@ typedef FileUtils_T<StandardUtilsPolicy> FileUtils;
 
 #endif
 
-#endif // FileUtils_h
+#endif  // FileUtils_h

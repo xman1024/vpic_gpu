@@ -9,14 +9,11 @@
 // function.
 //----------------------------------------------------------------------------//
 
-void
-vacuum_compute_rhob( field_array_t * RESTRICT fa )
-{
-  if ( !fa )
-  {
-    ERROR( ( "Bad args" ) );
-  }
+void vacuum_compute_rhob(field_array_t* RESTRICT fa) {
+    if (!fa) {
+        ERROR(("Bad args"));
+    }
 
-  // Conditionally execute this when more abstractions are available.
-  vacuum_compute_rhob_pipeline( fa );
+    // Conditionally execute this when more abstractions are available.
+    vacuum_compute_rhob_pipeline(fa);
 }

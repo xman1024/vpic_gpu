@@ -38,11 +38,14 @@ __global__ void particle_move_kernel(particle_t* p0,
 
         const interpolator_t* f = f0 + ii;  // Interpolate E
 
-        hax = qdt_2mc * ((f->ex + dy * f->dexdy) + dz * (f->dexdz + dy * f->d2exdydz));
+        hax = qdt_2mc *
+              ((f->ex + dy * f->dexdy) + dz * (f->dexdz + dy * f->d2exdydz));
 
-        hay = qdt_2mc * ((f->ey + dz * f->deydz) + dx * (f->deydx + dz * f->d2eydzdx));
+        hay = qdt_2mc *
+              ((f->ey + dz * f->deydz) + dx * (f->deydx + dz * f->d2eydzdx));
 
-        haz = qdt_2mc * ((f->ez + dx * f->dezdx) + dy * (f->dezdy + dx * f->d2ezdxdy));
+        haz = qdt_2mc *
+              ((f->ez + dx * f->dezdx) + dy * (f->dezdy + dx * f->d2ezdxdy));
 
         cbx = f->cbx + dx * f->dcbxdx;  // Interpolate B
         cby = f->cby + dy * f->dcbydy;
@@ -192,38 +195,48 @@ void run_kernel(particle_t* p0,  // wielkość n
     int* device_moved_2;
 
     // Alokacja
-    CUDA_CHECK(
-        cudaMalloc((void**)&device_f0, sizeof(interpolator_t) * interpolator_size));
-    CUDA_CHECK(cudaMalloc((void**)&device_a0, sizeof(accumulator_t) * accumulator_size));
+    CUDA_CHECK(cudaMalloc((void**)&device_f0,
+                          sizeof(interpolator_t) * interpolator_size));
+    CUDA_CHECK(cudaMalloc((void**)&device_a0,
+                          sizeof(accumulator_t) * accumulator_size));
 
-    CUDA_CHECK(cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
-    CUDA_CHECK(cudaMalloc((void**)&device_neighbours, sizeof(int64_t) * grid_size * 6));
+    CUDA_CHECK(
+        cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
+    CUDA_CHECK(cudaMalloc((void**)&device_neighbours,
+                          sizeof(int64_t) * grid_size * 6));
     CUDA_CHECK(cudaMalloc((void**)&device_moved, sizeof(int)));
     CUDA_CHECK(cudaMalloc((void**)&device_moved_2, sizeof(int)));
 
     // Kopiowanie tam
-    CUDA_CHECK(cudaMemcpy(device_p0, p0, sizeof(particle_t) * n, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(device_f0, f0, sizeof(interpolator_t) * interpolator_size,
+    CUDA_CHECK(cudaMemcpy(device_p0, p0, sizeof(particle_t) * n,
                           cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(device_a0, a0, sizeof(accumulator_t) * accumulator_size,
+    CUDA_CHECK(cudaMemcpy(device_f0, f0,
+                          sizeof(interpolator_t) * interpolator_size,
                           cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(device_neighbours, g->neighbor, sizeof(int64_t) * grid_size * 6,
+    CUDA_CHECK(cudaMemcpy(device_a0, a0,
+                          sizeof(accumulator_t) * accumulator_size,
+                          cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(device_neighbours, g->neighbor,
+                          sizeof(int64_t) * grid_size * 6,
                           cudaMemcpyHostToDevice));
     device_set_var(device_moved, 0);
     device_set_var(device_moved_2, 0);
 
-    // wywołanie kernela TODO liczba bloków powinna z grubsza odpowiadać liczbie SMów
-    particle_move_kernel<<<1024, 1024>>>(device_p0, device_f0, device_pmovers, device_a0,
-                                         n, device_moved, qdt_2mc, cdt_dx, cdt_dy, cdt_dz,
-                                         qsp);
+    // wywołanie kernela TODO liczba bloków powinna z grubsza odpowiadać liczbie
+    // SMów
+    particle_move_kernel<<<1024, 1024>>>(device_p0, device_f0, device_pmovers,
+                                         device_a0, n, device_moved, qdt_2mc,
+                                         cdt_dx, cdt_dy, cdt_dz, qsp);
 
     moved = device_fetch_var(device_moved);
 
-    cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours, qsp,
-                device_moved_2, device_pm, g->rangeh, g->rangel);
+    cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours,
+                qsp, device_moved_2, device_pm, g->rangeh, g->rangel);
     // kopiowanie z powrotem
-    CUDA_CHECK(cudaMemcpy(p0, device_p0, sizeof(particle_t) * n, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(a0, device_a0, sizeof(accumulator_t) * accumulator_size,
+    CUDA_CHECK(cudaMemcpy(p0, device_p0, sizeof(particle_t) * n,
+                          cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(a0, device_a0,
+                          sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));
     *nm = device_fetch_var(device_moved_2);
     CUDA_CHECK(cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm),

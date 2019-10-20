@@ -8,14 +8,11 @@
 // Top level function to select and call the proper compute_rhob function.
 //----------------------------------------------------------------------------//
 
-void
-compute_rhob( field_array_t * RESTRICT fa )
-{
-  if ( !fa )
-  {
-    ERROR( ( "Bad args" ) );
-  }
+void compute_rhob(field_array_t* RESTRICT fa) {
+    if (!fa) {
+        ERROR(("Bad args"));
+    }
 
-  // Conditionally execute this when more abstractions are available.
-  compute_rhob_pipeline( fa );
+    // Conditionally execute this when more abstractions are available.
+    compute_rhob_pipeline(fa);
 }

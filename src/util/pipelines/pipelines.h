@@ -10,7 +10,7 @@
 enum { MAX_PIPELINE = 272 };
 
 // Is this even related to pipelines.  Maybe this should be in util_base.h.
-# define PAD_STRUCT( sz )
+#define PAD_STRUCT(sz)
 
 //----------------------------------------------------------------------------//
 // Make sure that pipelines_pthreads.h and pipelines_openmp.h can only be
@@ -54,4 +54,4 @@ enum { MAX_PIPELINE = 272 };
 
 #undef THREAD_REROUTE
 
-#endif // _pipelines_h_ 
+#endif  // _pipelines_h_

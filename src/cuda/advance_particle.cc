@@ -1,5 +1,5 @@
-#include <cuda_runtime.h>
 #include "advance_particle.h"
+#include <cuda_runtime.h>
 #include <iostream>
 #include <vector>
 #include "../util/util_base.h"
@@ -41,8 +41,8 @@ void advance_p_cuda(species_t* RESTRICT sp,
 
     int n_ignored = 0;
 
-    run_kernel(p0, device_p0, sp->np, f0, a0, sp->pm, sp->device_pm, g, qdt_2mc, cdt_dx, cdt_dy, cdt_dz,
-            qsp, sp->max_nm, &sp->nm, &n_ignored);
+    run_kernel(p0, device_p0, sp->np, f0, a0, sp->pm, sp->device_pm, g, qdt_2mc,
+               cdt_dx, cdt_dy, cdt_dz, qsp, sp->max_nm, &sp->nm, &n_ignored);
 
     if (n_ignored) {
         WARNING(("Pipeline %i ran out of storage for %i movers", 0, n_ignored));

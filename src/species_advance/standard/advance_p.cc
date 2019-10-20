@@ -50,9 +50,11 @@ void advance_p(species_t* RESTRICT sp,
     PERF_END(cpu_advance_p)
 
     double tot_difference = abs_dif(sp2.p, sp->p, sp->np);
-    std::cerr << std::setprecision(13) << "!!!! Total difference = " << tot_difference
+    std::cerr << std::setprecision(13)
+              << "!!!! Total difference = " << tot_difference
               << " avg difference = " << tot_difference / sp->np
-              << " peak difference = " << peak_dif(sp2.p, sp->p, sp->np) << std::endl;
+              << " peak difference = " << peak_dif(sp2.p, sp->p, sp->np)
+              << std::endl;
 
     delete[] sp2.p;
     // CUDA_CHECK(cudaFreeHost(sp2.p));

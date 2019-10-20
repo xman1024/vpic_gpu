@@ -8,11 +8,8 @@
 // available is the pipeline abstraction.
 //----------------------------------------------------------------------------//
 
-void
-center_p( species_t * RESTRICT sp,
-          const interpolator_array_t * RESTRICT ia )
-{
-  // Once more options are available, this should be conditionally executed
-  // based on user choice.
-  center_p_pipeline( sp, ia );
+void center_p(species_t* RESTRICT sp, const interpolator_array_t* RESTRICT ia) {
+    // Once more options are available, this should be conditionally executed
+    // based on user choice.
+    center_p_pipeline(sp, ia);
 }

@@ -64,7 +64,8 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
                 v3 = v2, axis = 2;
             v3 *= 0.5f;
 
-            // Compute the midpoint and the normalized displacement of the streak
+            // Compute the midpoint and the normalized displacement of the
+            // streak
             s_dispx *= v3;
             s_dispy *= v3;
             s_dispz *= v3;
@@ -156,7 +157,7 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
             // particle coordinate system and keep moving the particle.
 
             p->i = neighbor - rangel;  // Compute local index of neighbor
-            /**/                       // Note: neighbor - g->rangel < 2^31 / 6
+            /**/                         // Note: neighbor - g->rangel < 2^31 / 6
             (&(p->dx))[axis] = -v0;    // Convert coordinate system
         }
     }
@@ -172,6 +173,6 @@ void cuda_move_p(particle_t* p0,
                  particle_mover_t* pm_save,
                  int64_t rangeh,
                  int64_t rangel) {
-    cuda_move_p_kernel<<<1024, 1024>>>(p0, pm, n, a0, neighbours, qsp, nm, pm_save,
-                                       rangeh, rangel);
+    cuda_move_p_kernel<<<1024, 1024>>>(p0, pm, n, a0, neighbours, qsp, nm,
+                                       pm_save, rangeh, rangel);
 }
