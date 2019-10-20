@@ -41,7 +41,9 @@ species_t* restore_species(void) {
 void delete_species(species_t* sp) {
     UNREGISTER_OBJECT(sp);
     FREE_ALIGNED(sp->partition);
+    CUDA_CHECK(cudaFree(sp->device_pm));
     FREE_ALIGNED(sp->pm);
+    CUDA_CHECK(cudaFree(sp->device_p0));
     FREE_ALIGNED(sp->p);
     FREE(sp->name);
     FREE(sp);
