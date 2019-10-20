@@ -8,7 +8,9 @@
  *
  */
 
+#include <cuda_runtime.h>
 #include "species_advance.h"
+#include "../cuda/utils.h"
 
 /* Private interface *********************************************************/
 
@@ -128,9 +130,13 @@ species( const char * name,
 
   MALLOC_ALIGNED( sp->p, max_local_np, 128 );
   sp->max_np = max_local_np;
+  CUDA_CHECK(cudaMalloc((void**)&sp->device_p0,
+              sizeof(particle_t) * sp->max_np));
 
   MALLOC_ALIGNED( sp->pm, max_local_nm, 128 );
   sp->max_nm = max_local_nm;
+  CUDA_CHECK(cudaMalloc((void**)&sp->device_pm,
+              sizeof(particle_t) * max_local_nm));
 
   sp->last_sorted       = INT64_MIN;
   sp->sort_interval     = sort_interval;
