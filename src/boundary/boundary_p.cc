@@ -1,6 +1,8 @@
 #define IN_boundary
 #include "boundary_private.h"
 
+#include <cuda_runtime.h>
+#include "../cuda/utils.h"
 // If this is defined particle and mover buffers will not resize dynamically
 // (This is the common case for the users)
 //#define DISABLE_DYNAMIC_RESIZING
@@ -326,6 +328,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 #ifndef DISABLE_DYNAMIC_RESIZING
     // Resize particle storage to accomodate worst case inject
 
+    int max_inj = n_ci;
     do {
         int n, nm;
 
@@ -334,14 +337,13 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
         // the n_recv[face] by species before sending it, we could be
         // tighter on memory footprint here.)
         // UWAGA tu jest jakaś logika związana z wrzucaniem cząstek na wektory
-        int max_inj = n_ci;
         for (face = 0; face < 6; face++)
             if (shared[face])
                 max_inj += n_recv[face];
 
         LIST_FOR_EACH(sp, sp_list) {
             particle_mover_t* new_pm;
-            particle_t* new_p;
+            particle_t* new_device_p0;
 
             n = sp->np + max_inj;
             if (n > sp->max_np) {
@@ -352,10 +354,14 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 // float resize_ratio = (float)n/sp->max_np;
                 WARNING(("Resizing local %s particle storage from %i to %i",
                          sp->name, sp->max_np, n));
-                MALLOC_ALIGNED(new_p, n, 128);
-                COPY(new_p, sp->p, sp->np);
-                FREE_ALIGNED(sp->p);
-                sp->p = new_p, sp->max_np = n;
+                CUDA_CHECK(
+                    cudaMalloc((void**)&new_device_p0, sizeof(particle_t) * n));
+                CUDA_CHECK(cudaMemcpy(new_device_p0, sp->device_p0,
+                                      sizeof(particle_t) * sp->np,
+                                      cudaMemcpyDeviceToDevice));
+                CUDA_CHECK(cudaFree(sp->device_p0));
+                sp->device_p0 = new_device_p0;
+                sp->max_np = n;
 
                 /*nm = sp->max_nm * resize_ratio;
                 WARNING(( "Resizing local %s mover storage from %i to %i",
@@ -375,10 +381,14 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                     ("Resizing (shrinking) local %s particle storage from "
                      "%i to %i",
                      sp->name, sp->max_np, n));
-                MALLOC_ALIGNED(new_p, n, 128);
-                COPY(new_p, sp->p, sp->np);
-                FREE_ALIGNED(sp->p);
-                sp->p = new_p, sp->max_np = n;
+                CUDA_CHECK(
+                    cudaMalloc((void**)&new_device_p0, sizeof(particle_t) * n));
+                CUDA_CHECK(cudaMemcpy(new_device_p0, sp->device_p0,
+                                      sizeof(particle_t) * sp->np,
+                                      cudaMemcpyDeviceToDevice));
+                CUDA_CHECK(cudaFree(sp->device_p0));
+                sp->device_p0 = new_device_p0;
+                sp->max_np = n;
 
                 /*nm = sp->max_nm * resize_ratio;
                 WARNING(( "Resizing (shrinking) local %s mover storage from "
@@ -434,10 +444,11 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
         if (num_species(sp_list) > MAX_SP)
             ERROR(("Update this to support more species"));
         LIST_FOR_EACH(sp, sp_list) {
-            sp_p[sp->id]  = sp->p;
+            // robimy pusta tablice
+            MALLOC(sp_p[sp->id], max_inj);
             sp_pm[sp->id] = sp->pm;
             sp_q[sp->id]  = sp->q;
-            sp_np[sp->id] = sp->np;
+            sp_np[sp->id] = 0;
             sp_nm[sp->id] = sp->nm;
 #ifdef DISABLE_DYNAMIC_RESIZING
             sp_max_np[sp->id]           = sp->max_np;
@@ -543,10 +554,16 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                      "for this species on this node.",
                      n_dropped_movers[sp->id], sp->name));
 #endif
+            // tu jest dopisywanie nowych do listy
+            CUDA_CHECK(cudaMemcpy(sp->device_p0 + sp->np, sp_p[sp->id], sp_np[sp->id], cudaMemcpyHostToDevice));
             sp->np = sp_np[sp->id];
             sp->nm = sp_nm[sp->id];
         }
 
+
+        LIST_FOR_EACH(sp, sp_list) {
+            FREE(sp_p[sp->id]);
+        }
     } while (0);
 
     for (face = 0; face < 6; face++)
