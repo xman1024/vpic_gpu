@@ -102,7 +102,7 @@ void emit_child_langmuir(child_langmuir_t* RESTRICT cl,
             pa.u##Y = u##Y;                                          \
             pa.u##Z = u##Z;                                          \
             pa.w    = w;                                             \
-            accumulate_rhob(f, pa, g, -qsp);                        \
+            accumulate_rhob(f, &pa, g, -qsp);                        \
             np++;                                                       \
                                                                         \
             /* Age the particle */                                      \

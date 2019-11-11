@@ -18,6 +18,7 @@
 // make use of explicit calls to vector intrinsic functions.
 //----------------------------------------------------------------------------//
 
+#if 0
 void advance_p_pipeline_scalar(advance_p_pipeline_args_t* args,
                                int pipeline_rank,
                                int n_pipeline) {
@@ -237,6 +238,7 @@ void advance_p_pipeline_scalar(advance_p_pipeline_args_t* args,
     args->seg[pipeline_rank].nm        = nm;
     args->seg[pipeline_rank].n_ignored = itmp;
 }
+#endif
 
 //----------------------------------------------------------------------------//
 // Top level function to select and call the proper advance_p pipeline
@@ -256,7 +258,7 @@ void advance_p_pipeline(species_t* RESTRICT sp,
         ERROR(("Bad args"));
     }
 
-    args->p0  = sp->p;
+    args->p0  = sp->device_p0;
     args->pm  = sp->pm;
     args->a0  = aa->a;
     args->f0  = ia->i;

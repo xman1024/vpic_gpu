@@ -17,7 +17,10 @@
 void checkpt_species(const species_t* sp) {
     CHECKPT(sp, 1);
     CHECKPT_STR(sp->name);
-    checkpt_data(sp->p, sp->np * sizeof(particle_t),
+    particle_t* p;
+    MALLOC(p, sp->np);
+    CUDA_CHECK(cudaMemcpy(p, sp->device_p0, sizeof(particle_t) * sp->np, cudaMemcpyDeviceToHost));
+    checkpt_data(p, sp->np * sizeof(particle_t),
                  sp->max_np * sizeof(particle_t), 1, 1, 128);
     checkpt_data(sp->pm, sp->nm * sizeof(particle_mover_t),
                  sp->max_nm * sizeof(particle_mover_t), 1, 1, 128);
@@ -30,7 +33,9 @@ species_t* restore_species(void) {
     species_t* sp;
     RESTORE(sp);
     RESTORE_STR(sp->name);
-    sp->p  = (particle_t*)restore_data();
+    particle_t* p;
+    p  = (particle_t*)restore_data();
+    CUDA_CHECK(cudaMemcpy(sp->device_p0, p, sizeof(particle_t) * sp->np, cudaMemcpyHostToDevice));
     sp->pm = (particle_mover_t*)restore_data();
     RESTORE_ALIGNED(sp->partition);
     RESTORE_PTR(sp->g);
@@ -44,7 +49,7 @@ void delete_species(species_t* sp) {
     CUDA_CHECK(cudaFree(sp->device_pm));
     FREE_ALIGNED(sp->pm);
     CUDA_CHECK(cudaFree(sp->device_p0));
-    FREE_ALIGNED(sp->p);
+//    FREE_ALIGNED(sp->p);
     FREE(sp->name);
     FREE(sp);
 }
@@ -126,7 +131,8 @@ species_t* species(const char* name,
     sp->q = q;
     sp->m = m;
 
-    MALLOC_ALIGNED(sp->p, max_local_np, 128);
+//    MALLOC_ALIGNED(sp->p, max_local_np, 128);
+    CUDA_CHECK(cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * max_local_np));
     sp->max_np = max_local_np;
     CUDA_CHECK(
         cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
