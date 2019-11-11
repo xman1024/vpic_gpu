@@ -173,7 +173,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             const float sp_q    = sp->q;
             const int32_t sp_id = sp->id;
 
-            particle_t* RESTRICT ALIGNED(128) p0 = sp->p;
+            particle_t* RESTRICT ALIGNED(128) p0 = sp->device_p0;
             int np                               = sp->np;
 
             particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
@@ -194,18 +194,20 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 
             for (; nm; pm--, nm--) {
                 i     = pm->i;
-                voxel = p0[i].i;
+                voxel = device_fetch_var(&(p0[i].i));
                 face  = voxel & 7;
                 voxel >>= 3;
-                p0[i].i = voxel;
+                device_set_var(&(p0[i].i), voxel);
                 nn      = neighbor[6 * voxel + face];
 
                 // Absorb
 
+                // TODO tu jest przekazywane i to moze byc niedobrze?
                 if (nn == absorb_particles) {
                     // Ideally, we would batch all rhob accumulations together
                     // for efficiency
-                    accumulate_rhob(f, p0 + i, g, sp_q);
+                    particle_t p = device_fetch_var(p0 + i);
+                    accumulate_rhob(f, &p, g, sp_q);
                     goto backfill;
                 }
 
@@ -214,18 +216,20 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 if (((nn >= 0) & (nn < rangel)) |
                     ((nn > rangeh) & (nn <= rangem))) {
                     pi = &pi_send[face][n_send[face]++];
+                    // TODO tu musi byc z karty wyciagane
+                    particle_t p = device_fetch_var(p0 + i);
 #ifdef V4_ACCELERATION
-                    copy_4x1(&pi->dx, &p0[i].dx);
-                    copy_4x1(&pi->ux, &p0[i].ux);
+                    copy_4x1(&pi->dx, &p.dx);
+                    copy_4x1(&pi->ux, &p.ux);
                     copy_4x1(&pi->dispx, &pm->dispx);
 #else
-                    pi->dx    = p0[i].dx;
-                    pi->dy    = p0[i].dy;
-                    pi->dz    = p0[i].dz;
-                    pi->ux    = p0[i].ux;
-                    pi->uy    = p0[i].uy;
-                    pi->uz    = p0[i].uz;
-                    pi->w     = p0[i].w;
+                    pi->dx    = p.dx;
+                    pi->dy    = p.dy;
+                    pi->dz    = p.dz;
+                    pi->ux    = p.ux;
+                    pi->uy    = p.uy;
+                    pi->uz    = p.uz;
+                    pi->w     = p.w;
                     pi->dispx = pm->dispx;
                     pi->dispy = pm->dispy;
                     pi->dispz = pm->dispz;
@@ -256,7 +260,8 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 
                 nn = -nn - 3;  // Assumes reflective/absorbing are -1, -2
                 if ((nn >= 0) & (nn < nb)) {
-                    n_ci += pbc_interact[nn](pbc_params[nn], sp, p0 + i, pm,
+                    particle_t p = device_fetch_var(p0 + i);
+                    n_ci += pbc_interact[nn](pbc_params[nn], sp, &p, pm,
                                              ci + n_ci, 1, face);
                     goto backfill;
                 }
@@ -271,12 +276,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             backfill:
 
                 np--;
-#ifdef V4_ACCELERATION
-                copy_4x1(&p0[i].dx, &p0[np].dx);
-                copy_4x1(&p0[i].ux, &p0[np].ux);
-#else
-                p0[i] = p0[np];
-#endif
+                CUDA_CHECK(cudaMemcpy(p0 + i, p0 + np, sizeof(particle_t), cudaMemcpyDeviceToDevice));
             }
 
             sp->np = np;
