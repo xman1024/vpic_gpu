@@ -15,6 +15,7 @@
 
 #include "../species_advance.h"
 
+#if 0
 // accumulate_hydro_p adds the hydrodynamic fields associated with the
 // supplied particle_list to the hydro array.  Trilinear interpolation
 // is used.  hydro is known at the nodes at the same time as particle
@@ -174,3 +175,5 @@ void accumulate_hydro_p(hydro_array_t* RESTRICT ha,
 #undef ACCUM_HYDRO
     }
 }
+
+#endif

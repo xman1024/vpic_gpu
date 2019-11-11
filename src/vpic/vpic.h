@@ -230,7 +230,9 @@ class vpic_simulation {
     // Binary dumps
     void dump_grid(const char* fbase);
     void dump_fields(const char* fbase, int fname_tag = 1);
+#if 0
     void dump_hydro(const char* sp_name, const char* fbase, int fname_tag = 1);
+#endif
     void dump_particles(const char* sp_name,
                         const char* fbase,
                         int fname_tag = 1);

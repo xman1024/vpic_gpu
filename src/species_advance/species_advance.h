@@ -112,11 +112,14 @@ void accumulate_rhob(field_t* RESTRICT ALIGNED(128) f,
                      const grid_t* RESTRICT g,
                      const float qsp);
 
+
+#if 0
 // In hydro_p.c
 
 void accumulate_hydro_p(hydro_array_t* RESTRICT ha,
                         const species_t* RESTRICT sp,
                         const interpolator_array_t* RESTRICT ia);
+#endif
 
 // In move_p.cxx
 

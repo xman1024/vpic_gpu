@@ -12,14 +12,11 @@
 #include "spa_private.h"
 
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../../../cuda/utils.h"
 
 //----------------------------------------------------------------------------//
 // This is the new thread parallel version of the particle sort.
 //----------------------------------------------------------------------------//
-
-#if defined(__SSE__)
-#include "xmmintrin.h"
-#endif
 
 // FIXME: HOOK UP IN-PLACE / OUT-PLACE OPTIONS AGAIN.
 
@@ -60,7 +57,7 @@ void coarse_count_pipeline_scalar(sort_p_pipeline_args_t* args,
 
     // Local coarse count the input particles.
     for (; i < i1; i++) {
-        count[V2P(p_src[i].i, n_subsort, vl, vh)]++;
+        count[V2P(device_fetch_variable(&p_src[i].i), n_subsort, vl, vh)]++;
     }
 
     // Copy local coarse count to output.
@@ -106,25 +103,16 @@ void coarse_sort_pipeline_scalar(sort_p_pipeline_args_t* args,
 
     // Copy particles into aux array in coarse sorted order.
     for (; i < i1; i++) {
-        j = next[V2P(p_src[i].i, n_subsort, vl, vh)]++;
+        j = next[V2P(device_fetch_var(&p_src[i].i), n_subsort, vl, vh)]++;
 
-#if defined(__SSE__)
-
-        _mm_store_ps(&p_dst[j].dx, _mm_load_ps(&p_src[i].dx));
-        _mm_store_ps(&p_dst[j].ux, _mm_load_ps(&p_src[i].ux));
-
-#else
-
-        p_dst[j] = p_src[i];
-
-#endif
+        CUDA_CHECK(cuda_Memcpy(p_dst + j, p_dst + i, sizeof(particle_t), cudaMemcpyDeviceToDevice));
     }
 }
 
 //----------------------------------------------------------------------------//
 //
 //----------------------------------------------------------------------------//
-
+// assume both p_src and p_dst are on the gpu
 void subsort_pipeline_scalar(sort_p_pipeline_args_t* args,
                              int pipeline_rank,
                              int n_pipeline) {
@@ -159,7 +147,7 @@ void subsort_pipeline_scalar(sort_p_pipeline_args_t* args,
 
         // Fine grained count.
         for (i = i0; i < i1; i++) {
-            next[p_src[i].i]++;
+            next[device_fetch_var(&p_src[i].i)]++;
         }
 
         // Compute the partitioning.
@@ -175,19 +163,11 @@ void subsort_pipeline_scalar(sort_p_pipeline_args_t* args,
 
         // Local fine grained sort.
         for (i = i0; i < i1; i++) {
-            v = p_src[i].i;
+            v = device_fetch_var(&p_src[i].i);
             j = next[v]++;
 
-#if defined(__SSE__)
+            CUDA_CHECK(cudaMemcpy(p_dst + j, p_src + i, sizeof(particle_t), cudaMemcpyDeviceToDevice));
 
-            _mm_store_ps(&p_dst[j].dx, _mm_load_ps(&p_src[i].dx));
-            _mm_store_ps(&p_dst[j].ux, _mm_load_ps(&p_src[i].ux));
-
-#else
-
-            p_dst[j] = p_src[i];
-
-#endif
         }
     }
 }
@@ -204,6 +184,7 @@ void sort_p_pipeline(species_t* sp) {
     sp->last_sorted = sp->g->step;
 
     static char* ALIGNED(128) scratch = NULL;
+    static char* device_scratch = NULL;
     static size_t max_scratch         = 0;
 
     size_t sz_scratch;
@@ -236,19 +217,21 @@ void sort_p_pipeline(species_t* sp) {
 
     // Ensure enough scratch space is allocated for the sorting.
     sz_scratch =
-        (sizeof(*p) * n_particle + 128 + sizeof(*partition) * n_voxel + 128 +
+        (sizeof(particle_t) * n_particle + 128 + sizeof(*partition) * n_voxel + 128 +
          sizeof(*coarse_partition) * (cp_stride * n_pipeline + 1));
 
     if (sz_scratch > max_scratch) {
+        CUDA_CHECK(cudaFree(device_scratch));
         FREE_ALIGNED(scratch);
 
+        CUDA_CHECK(cudaMalloc((void**)&device_scratch, sizeof(particle_t) * sz_scratch));
         MALLOC_ALIGNED(scratch, sz_scratch, 128);
 
         max_scratch = sz_scratch;
     }
 
-    aux_p            = ALIGN_PTR(particle_t, scratch, 128);
-    next             = ALIGN_PTR(int, aux_p + n_particle, 128);
+    aux_p            = device_scratch;
+    next             = ALIGN_PTR(int, scratch + n_particle, 128);
     coarse_partition = ALIGN_PTR(int, next + n_voxel, 128);
 
     // Setup pipeline arguments.
@@ -325,6 +308,7 @@ void sort_p_pipeline(species_t* sp) {
         // above. Copy it to the right place and undo the above hack. FIXME: IF
         // WILLING TO MOVE SP->P AROUND AND DO MORE MALLOCS PER STEP I.E. HEAP
         // FRAGMENTATION, COULD AVOID THIS COPY.
+        CUDA_CHECK(cudaMemcpy(p, aux_p, sizeof(particle_t) * n_particle, cudaMemcpyDeviceToDevice));
         COPY(p, aux_p, n_particle);
     }
 }
