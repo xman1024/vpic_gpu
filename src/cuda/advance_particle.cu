@@ -164,8 +164,8 @@ __global__ void particle_move_kernel(particle_t* p0,
     }
 }
 
-void run_kernel(particle_t* p0,  // wielkość n
-                particle_t* device_p0,
+void run_kernel(
+                particle_t* device_p0,// wielkość n
                 int n,
                 const interpolator_t* f0,  // wielkość accumulator_size
                 accumulator_t* a0,         // wielkość interpolator_size
@@ -208,8 +208,6 @@ void run_kernel(particle_t* p0,  // wielkość n
     CUDA_CHECK(cudaMalloc((void**)&device_moved_2, sizeof(int)));
 
     // Kopiowanie tam
-    CUDA_CHECK(cudaMemcpy(device_p0, p0, sizeof(particle_t) * n,
-                          cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(device_f0, f0,
                           sizeof(interpolator_t) * interpolator_size,
                           cudaMemcpyHostToDevice));
@@ -233,8 +231,6 @@ void run_kernel(particle_t* p0,  // wielkość n
     cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours,
                 qsp, device_moved_2, device_pm, g->rangeh, g->rangel);
     // kopiowanie z powrotem
-    CUDA_CHECK(cudaMemcpy(p0, device_p0, sizeof(particle_t) * n,
-                          cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaMemcpy(a0, device_a0,
                           sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));

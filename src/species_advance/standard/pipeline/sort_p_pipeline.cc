@@ -57,7 +57,7 @@ void coarse_count_pipeline_scalar(sort_p_pipeline_args_t* args,
 
     // Local coarse count the input particles.
     for (; i < i1; i++) {
-        count[V2P(device_fetch_variable(&p_src[i].i), n_subsort, vl, vh)]++;
+        count[V2P(device_fetch_var(&p_src[i].i), n_subsort, vl, vh)]++;
     }
 
     // Copy local coarse count to output.
@@ -105,7 +105,7 @@ void coarse_sort_pipeline_scalar(sort_p_pipeline_args_t* args,
     for (; i < i1; i++) {
         j = next[V2P(device_fetch_var(&p_src[i].i), n_subsort, vl, vh)]++;
 
-        CUDA_CHECK(cuda_Memcpy(p_dst + j, p_dst + i, sizeof(particle_t), cudaMemcpyDeviceToDevice));
+        CUDA_CHECK(cudaMemcpy(p_dst + j, p_dst + i, sizeof(particle_t), cudaMemcpyDeviceToDevice));
     }
 }
 
@@ -184,13 +184,13 @@ void sort_p_pipeline(species_t* sp) {
     sp->last_sorted = sp->g->step;
 
     static char* ALIGNED(128) scratch = NULL;
-    static char* device_scratch = NULL;
+    static particle_t* device_scratch = NULL;
     static size_t max_scratch         = 0;
 
     size_t sz_scratch;
 
-    particle_t* RESTRICT ALIGNED(128) p = sp->p;
-    particle_t* RESTRICT ALIGNED(128) aux_p;
+    particle_t* p = sp->device_p0;
+    particle_t* aux_p;
 
     int n_particle = sp->np;
 

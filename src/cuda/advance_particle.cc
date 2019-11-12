@@ -7,8 +7,7 @@
 #define IN_spa
 #include "../species_advance/standard/pipeline/spa_private.h"
 
-void run_kernel(particle_t* p0,
-                particle_t* device_p0,
+void run_kernel(particle_t* device_p0,
                 int n,
                 const interpolator_t* f0,
                 accumulator_t* a0,
@@ -27,7 +26,6 @@ void run_kernel(particle_t* p0,
 void advance_p_cuda(species_t* RESTRICT sp,
                     accumulator_array_t* RESTRICT aa,
                     const interpolator_array_t* RESTRICT ia) {
-    particle_t* p0           = sp->p;
     particle_t* device_p0    = sp->device_p0;
     accumulator_t* a0        = aa->a;
     const interpolator_t* f0 = ia->i;
@@ -41,7 +39,7 @@ void advance_p_cuda(species_t* RESTRICT sp,
 
     int n_ignored = 0;
 
-    run_kernel(p0, device_p0, sp->np, f0, a0, sp->pm, sp->device_pm, g, qdt_2mc,
+    run_kernel(device_p0, sp->np, f0, a0, sp->pm, sp->device_pm, g, qdt_2mc,
                cdt_dx, cdt_dy, cdt_dz, qsp, sp->max_nm, &sp->nm, &n_ignored);
 
     if (n_ignored) {

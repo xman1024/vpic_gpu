@@ -7,6 +7,10 @@
 #include "spa_private.h"
 
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../../../cuda/compute_f0_size.h"
+#include "../../../cuda/utils.h"
+#include "../../../cuda/energy_p.h"
+#include <cuda_runtime.h>
 
 //----------------------------------------------------------------------------//
 // Reference implementation for an energy_p pipeline function which does not
@@ -17,51 +21,33 @@
 void energy_p_pipeline_scalar(energy_p_pipeline_args_t* RESTRICT args,
                               int pipeline_rank,
                               int n_pipeline) {
-    const interpolator_t* RESTRICT ALIGNED(128) f = args->f;
-    const particle_t* RESTRICT ALIGNED(32) p      = args->p;
+    const particle_t* p      = args->p;
 
     const float qdt_2mc = args->qdt_2mc;
     const float msp     = args->msp;
-    const float one     = 1.0;
 
-    float dx, dy, dz;
-    float v0, v1, v2;
+    double* en;
+    CUDA_CHECK(cudaMalloc((void**)&en, sizeof(double)));
+    device_set_var(en, 0.0);
 
-    double en = 0.0;
-
-    int i, n, n0, n1;
+    int n0, n1;
 
     // Determine which particles this pipeline processes.
 
     DISTRIBUTE(args->np, 16, pipeline_rank, n_pipeline, n0, n1);
 
-    n1 += n0;
+    interpolator_t* f;
+    int f0_size = compute_f0_size(p + n0, n1);
+    CUDA_CHECK(cudaMalloc((void**)&f, f0_size * sizeof(interpolator_t)));
+    CUDA_CHECK(cudaMemcpy(f, args->f, f0_size * sizeof(interpolator_t), cudaMemcpyHostToDevice));
 
     // Process particles quads for this pipeline.
 
-    for (n = n0; n < n1; n++) {
-        dx = p[n].dx;
-        dy = p[n].dy;
-        dz = p[n].dz;
-        i  = p[n].i;
+    energy_p_pipeline_cuda(p + n0, n1, f, qdt_2mc, msp, en);
 
-        v0 = p[n].ux + qdt_2mc * ((f[i].ex + dy * f[i].dexdy) +
-                                  dz * (f[i].dexdz + dy * f[i].d2exdydz));
-
-        v1 = p[n].uy + qdt_2mc * ((f[i].ey + dz * f[i].deydz) +
-                                  dx * (f[i].deydx + dz * f[i].d2eydzdx));
-
-        v2 = p[n].uz + qdt_2mc * ((f[i].ez + dx * f[i].dezdx) +
-                                  dy * (f[i].dezdy + dx * f[i].d2ezdxdy));
-
-        v0 = v0 * v0 + v1 * v1 + v2 * v2;
-
-        v0 = (msp * p[n].w) * (v0 / (one + sqrtf(one + v0)));
-
-        en += (double)v0;
-    }
-
-    args->en[pipeline_rank] = en;
+    args->en[pipeline_rank] = device_fetch_var(en);
+    CUDA_CHECK(cudaFree(en));
+    CUDA_CHECK(cudaFree(f));
 }
 
 //----------------------------------------------------------------------------//
@@ -85,7 +71,7 @@ double energy_p_pipeline(const species_t* RESTRICT sp,
     // Have the pipelines do the bulk of particles in blocks and have the
     // host do the final incomplete block.
 
-    args->p       = sp->p;
+    args->p       = sp->device_p0;
     args->f       = ia->i;
     args->en      = en;
     args->qdt_2mc = (sp->q * sp->g->dt) / (2 * sp->m * sp->g->cvac);

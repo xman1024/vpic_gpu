@@ -22,7 +22,7 @@ void device_set_var(C* var, C val) {
     CUDA_CHECK(cudaMemcpy(var, &val, sizeof(C), cudaMemcpyHostToDevice));
 }
 template <class C>
-C device_fetch_var(C* var) {
+C device_fetch_var(const C* var) {
     C res;
     CUDA_CHECK(cudaMemcpy(&res, var, sizeof(C), cudaMemcpyDeviceToHost));
     return res;

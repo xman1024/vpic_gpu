@@ -63,7 +63,7 @@ typedef struct species {
     float m;     // Species particle rest mass
 
     int np, max_np;              // Number and max local particles
-    particle_t* ALIGNED(128) p;  // Array of particles for the species
+//    particle_t* ALIGNED(128) p;  // Array of particles for the species
     particle_t* device_p0;
     // Tutaj chyba są przenoszone cząsteczki w advance_p
     int nm, max_nm;                     // Number and max local movers in use

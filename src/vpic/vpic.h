@@ -14,10 +14,12 @@
 #define vpic_h
 
 #include <cmath>
+#include <cuda_runtime.h>
 #include <vector>
 
 #include "../boundary/boundary.h"
-#include "../collision/collision.h"
+#include "../cuda/utils.h"
+#include "../cuda/move_p.h"
 #include "../emitter/emitter.h"
 // FIXME: INCLUDES ONCE ALL IS CLEANED UP
 #include "../util/bitfield.h"
@@ -190,7 +192,6 @@ class vpic_simulation {
                                                // boundary helpers
     emitter_t* emitter_list;                   // define_emitter /
                                                // emitter helpers
-    collision_op_t* collision_op_list;         // collision helpers
 
     // User defined checkpt preserved variables
     // Note: user_global is aliased with user_global_t (see deck_wrapper.cxx)
@@ -559,15 +560,16 @@ class vpic_simulation {
                                     float uy,
                                     float uz,
                                     float w) {
-        particle_t* RESTRICT p = sp->p + (sp->np++);
-        p->dx                  = dx;
-        p->dy                  = dy;
-        p->dz                  = dz;
-        p->i                   = i;
-        p->ux                  = ux;
-        p->uy                  = uy;
-        p->uz                  = uz;
-        p->w                   = w;
+        particle_t p;
+        p.dx                  = dx;
+        p.dy                  = dy;
+        p.dz                  = dz;
+        p.i                   = i;
+        p.ux                  = ux;
+        p.uy                  = uy;
+        p.uz                  = uz;
+        p.w                   = w;
+        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t), cudaMemcpyHostToDevice));
     }
 
     // This variant does a raw inject and moves the particles
@@ -585,23 +587,25 @@ class vpic_simulation {
                                     float dispy,
                                     float dispz,
                                     int update_rhob) {
-        particle_t* RESTRICT p        = sp->p + (sp->np++);
+        particle_t p;
         particle_mover_t* RESTRICT pm = sp->pm + sp->nm;
-        p->dx                         = dx;
-        p->dy                         = dy;
-        p->dz                         = dz;
-        p->i                          = i;
-        p->ux                         = ux;
-        p->uy                         = uy;
-        p->uz                         = uz;
-        p->w                          = w;
+        p.dx                         = dx;
+        p.dy                         = dy;
+        p.dz                         = dz;
+        p.i                          = i;
+        p.ux                         = ux;
+        p.uy                         = uy;
+        p.uz                         = uz;
+        p.w                          = w;
         pm->dispx                     = dispx;
         pm->dispy                     = dispy;
         pm->dispz                     = dispz;
         pm->i                         = sp->np - 1;
+
+        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t), cudaMemcpyHostToDevice));
         if (update_rhob)
-            accumulate_rhob(field_array->f, p, grid, -sp->q);
-        sp->nm += move_p(sp->p, pm, accumulator_array->a, grid, sp->q);
+            accumulate_rhob(field_array->f, &p, grid, -sp->q);
+        sp->nm += cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
     }
 
     //////////////////////////////////
@@ -660,10 +664,6 @@ class vpic_simulation {
 
     inline particle_bc_t* define_particle_bc(particle_bc_t* pbc) {
         return append_particle_bc(pbc, &particle_bc_list);
-    }
-
-    inline collision_op_t* define_collision_op(collision_op_t* cop) {
-        return append_collision_op(cop, &collision_op_list);
     }
 
     ////////////////////////

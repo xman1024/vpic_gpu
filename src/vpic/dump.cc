@@ -283,7 +283,8 @@ void vpic_simulation::dump_particles(const char* sp_name,
     char fname[256];
     FileIO fileIO;
     int dim[1], buf_start;
-    static particle_t* ALIGNED(128) p_buf = NULL;
+    static particle_t* p_buf = NULL;
+    static particle_t* p_buf_cpu = NULL;
 #define PBUF_SIZE 32768  // 1MB of particles
 
     sp = find_species_name(sp_name, species_list);
@@ -292,9 +293,6 @@ void vpic_simulation::dump_particles(const char* sp_name,
 
     if (!fbase)
         ERROR(("Invalid filename"));
-
-    if (!p_buf)
-        MALLOC_ALIGNED(p_buf, PBUF_SIZE, 128);
 
     if (rank() == 0)
         MESSAGE(("Dumping \"%s\" particles to \"%s\"", sp->name, fbase));
@@ -328,8 +326,14 @@ void vpic_simulation::dump_particles(const char* sp_name,
     // FIXME: WITH A PIPELINED CENTER_P, PBUF NOMINALLY SHOULD BE QUITE
     // LARGE.
 
-    particle_t* sp_p = sp->p;
-    sp->p            = p_buf;
+    if (!p_buf)
+    {
+        CUDA_CHECK(cudaMalloc((void**)&p_buf, sizeof(particle_t) * PBUF_SIZE));
+        MALLOC(p_buf, PBUF_SIZE);
+    }
+
+    particle_t* sp_p = sp->device_p0;
+    sp->device_p0            = p_buf;
     int sp_np        = sp->np;
     sp->np           = 0;
     int sp_max_np    = sp->max_np;
@@ -338,11 +342,12 @@ void vpic_simulation::dump_particles(const char* sp_name,
         sp->np = sp_np - buf_start;
         if (sp->np > PBUF_SIZE)
             sp->np = PBUF_SIZE;
-        COPY(sp->p, &sp_p[buf_start], sp->np);
+        CUDA_CHECK(cudaMemcpy(sp->device_p0, sp_p + buf_start, sp->np * sizeof(particle_t), cudaMemcpyDeviceToDevice));
         center_p(sp, interpolator_array);
-        fileIO.write(sp->p, sp->np);
+        CUDA_CHECK(cudaMemcpy(p_buf_cpu, sp->device_p0, sp->np *sizeof(particle_t), cudaMemcpyDeviceToHost));
+        fileIO.write(p_buf_cpu, sp->np);
     }
-    sp->p      = sp_p;
+    sp->device_p0      = sp_p;
     sp->np     = sp_np;
     sp->max_np = sp_max_np;
 
@@ -743,6 +748,7 @@ void vpic_simulation::field_dump(DumpParameters& dumpParams) {
         ERROR(("File close failed on field dump!!!"));
 }
 
+#if 0
 void vpic_simulation::hydro_dump(const char* speciesname,
                                  DumpParameters& dumpParams) {
     // Create directory for this time step
@@ -905,3 +911,4 @@ void vpic_simulation::hydro_dump(const char* speciesname,
     if (fileIO.close())
         ERROR(("File close failed on hydro dump!!!"));
 }
+#endif
