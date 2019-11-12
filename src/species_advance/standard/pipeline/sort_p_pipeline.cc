@@ -311,6 +311,5 @@ void sort_p_pipeline(species_t* sp) {
         // FRAGMENTATION, COULD AVOID THIS COPY.
         CUDA_CHECK(cudaMemcpy(p, aux_p, sizeof(particle_t) * n_particle,
                               cudaMemcpyDeviceToDevice));
-        COPY(p, aux_p, n_particle);
     }
 }
