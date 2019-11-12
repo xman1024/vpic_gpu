@@ -101,11 +101,19 @@ rng_t* seed_rng(rng_t* RESTRICT r, int seed) {
 _(char, c, uc, 1)
 _(unsigned char, uc, uc, 0)
 _(short, h, uh, 1)
-_(unsigned short, uh, uh, 0) _(int, i, ui, 1) _(unsigned int, ui, ui, 0)
-    _(long, l, ul, 1) _(unsigned long, ul, ul, 0) _(int8_t, i8, u8, 1)
-        _(uint8_t, u8, u8, 0) _(int16_t, i16, u16, 1) _(uint16_t, u16, u16, 0)
-            _(int32_t, i32, u32, 1) _(uint32_t, u32, u32, 0)
-                _(int64_t, i64, u64, 1) _(uint64_t, u64, u64, 0)
+_(unsigned short, uh, uh, 0)
+_(int, i, ui, 1)
+_(unsigned int, ui, ui, 0)
+_(long, l, ul, 1)
+_(unsigned long, ul, ul, 0)
+_(int8_t, i8, u8, 1)
+_(uint8_t, u8, u8, 0)
+_(int16_t, i16, u16, 1)
+_(uint16_t, u16, u16, 0)
+_(int32_t, i32, u32, 1)
+_(uint32_t, u32, u32, 0)
+_(int64_t, i64, u64, 1)
+_(uint64_t, u64, u64, 0)
 #undef _
 
 /* Uniform floating point generators */
@@ -132,14 +140,14 @@ _(unsigned short, uh, uh, 0) _(int, i, ui, 1) _(unsigned int, ui, ui, 0)
         return x;                                                           \
     }
 
-                    _(float, f, , uint32_t, u32) _(double, d, , uint64_t, u64)
-                        _(float, f, _c0, uint32_t, u32)
-                            _(double, d, _c0, uint64_t, u64)
-                                _(float, f, _c1, uint32_t, u32)
-                                    _(double, d, _c1, uint64_t, u64)
-                                        _(float, f, _c, uint32_t, u32)
-                                            _(double, d, _c, uint64_t, u64)
-
+_(float, f, , uint32_t, u32)
+_(double, d, , uint64_t, u64)
+_(float, f, _c0, uint32_t, u32)
+_(double, d, _c0, uint64_t, u64)
+_(float, f, _c1, uint32_t, u32)
+_(double, d, _c1, uint64_t, u64)
+_(float, f, _c, uint32_t, u32)
+_(double, d, _c, uint64_t, u64)
 #undef _
 
 /* Normal generators */
@@ -287,8 +295,7 @@ _(unsigned short, uh, uh, 0) _(int, i, ui, 1) _(unsigned int, ui, ui, 0)
 
 #include "frandn_table.h"
 
-                                                float frandn(
-                                                    rng_t* RESTRICT r) {
+float frandn(rng_t* RESTRICT r) {
     uint32_t a, i, j, s;
     float x, y;
 

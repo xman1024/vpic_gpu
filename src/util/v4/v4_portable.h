@@ -1073,12 +1073,24 @@ LOGICAL(||)
 CMATH_FR1(acos)
 CMATH_FR1(asin)
 CMATH_FR1(atan)
-CMATH_FR2(atan2) CMATH_FR1(ceil) CMATH_FR1(cos) CMATH_FR1(cosh) CMATH_FR1(exp)
-    CMATH_FR1(fabs) CMATH_FR1(floor) CMATH_FR2(fmod) CMATH_FR1(log)
-        CMATH_FR1(log10) CMATH_FR2(pow) CMATH_FR1(sin) CMATH_FR1(sinh)
-            CMATH_FR1(sqrt) CMATH_FR1(tan) CMATH_FR1(tanh)
+CMATH_FR2(atan2)
+CMATH_FR1(ceil)
+CMATH_FR1(cos)
+CMATH_FR1(cosh)
+CMATH_FR1(exp)
+CMATH_FR1(fabs)
+CMATH_FR1(floor)
+CMATH_FR2(fmod)
+CMATH_FR1(log)
+CMATH_FR1(log10)
+CMATH_FR2(pow)
+CMATH_FR1(sin)
+CMATH_FR1(sinh)
+CMATH_FR1(sqrt)
+CMATH_FR1(tan)
+CMATH_FR1(tanh)
 
-                inline v4float copysign(const v4float& a, const v4float& b) {
+inline v4float copysign(const v4float& a, const v4float& b) {
     v4float c;
     float t;
 

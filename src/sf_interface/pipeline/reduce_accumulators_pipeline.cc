@@ -56,30 +56,42 @@ void reduce_accumulators_pipeline_scalar(accumulators_pipeline_args_t* args,
     A(k)      \
     B(k, 1)   \
     B(k, 2) B(k, 3) B(k, 4) B(k, 5) C(k, ((v0 + v1) + (v2 + v3)) + (v4 + v5))
-#define O6(k)                       \
-    A(k)                            \
-    B(k, 1)                         \
-    B(k, 2)                         \
-    B(k, 3) B(k, 4) B(k, 5) B(k, 6) \
-        C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + v6))
-#define O7(k)                               \
-    A(k)                                    \
-    B(k, 1)                                 \
-    B(k, 2)                                 \
-    B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) \
-        C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7)))
-#define O8(k)                                       \
-    A(k)                                            \
-    B(k, 1)                                         \
-    B(k, 2)                                         \
-    B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) B(k, 8) \
-        C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + v8)
-#define O9(k)                                               \
-    A(k)                                                    \
-    B(k, 1)                                                 \
-    B(k, 2)                                                 \
-    B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) B(k, 8) B(k, 9) \
-        C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + (v8 + v9))
+#define O6(k) \
+    A(k)      \
+    B(k, 1)   \
+    B(k, 2)   \
+    B(k, 3)   \
+    B(k, 4) B(k, 5) B(k, 6) C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + v6))
+#define O7(k) \
+    A(k)      \
+    B(k, 1)   \
+    B(k, 2)   \
+    B(k, 3)   \
+    B(k, 4)   \
+    B(k, 5)   \
+    B(k, 6) B(k, 7) C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7)))
+#define O8(k) \
+    A(k)      \
+    B(k, 1)   \
+    B(k, 2)   \
+    B(k, 3)   \
+    B(k, 4)   \
+    B(k, 5)   \
+    B(k, 6)   \
+    B(k, 7)   \
+    B(k, 8) C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + v8)
+#define O9(k) \
+    A(k)      \
+    B(k, 1)   \
+    B(k, 2)   \
+    B(k, 3)   \
+    B(k, 4)   \
+    B(k, 5)   \
+    B(k, 6)   \
+    B(k, 7)   \
+    B(k, 8)   \
+    B(k, 9)   \
+    C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + (v8 + v9))
 
 #else
 

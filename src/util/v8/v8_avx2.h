@@ -1730,9 +1730,13 @@ inline v8int operator||(const v8float& a, const v8float& b) {
 CMATH_FR1(acos)
 CMATH_FR1(asin)
 CMATH_FR1(atan)
-CMATH_FR2(atan2) CMATH_FR1(ceil) CMATH_FR1(cos) CMATH_FR1(cosh) CMATH_FR1(exp)
-    /*CMATH_FR1(fabs)*/ CMATH_FR1(floor) CMATH_FR2(fmod) CMATH_FR1(log)
-        CMATH_FR1(log10) CMATH_FR2(pow) CMATH_FR1(sin) CMATH_FR1(sinh)
+CMATH_FR2(atan2)
+CMATH_FR1(ceil)
+CMATH_FR1(cos)
+CMATH_FR1(cosh)
+CMATH_FR1(exp)
+/*CMATH_FR1(fabs)*/ CMATH_FR1(floor) CMATH_FR2(fmod) CMATH_FR1(log)
+    CMATH_FR1(log10) CMATH_FR2(pow) CMATH_FR1(sin) CMATH_FR1(sinh)
     /*CMATH_FR1(sqrt)*/ CMATH_FR1(tan) CMATH_FR1(tanh)
 
         inline v8float fabs(const v8float& a) {

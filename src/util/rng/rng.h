@@ -89,11 +89,20 @@ seed_rng(rng_t* RESTRICT r, /* Generator to seed */
 _(c, char)
 _(uc, unsigned char)
 _(h, short)
-_(uh, unsigned short) _(i, int) _(ui, unsigned int) _(l, long)
-    _(ul, unsigned long)
+_(uh, unsigned short)
+_(i, int)
+_(ui, unsigned int)
+_(l, long)
+_(ul, unsigned long)
 
-        _(i8, int8_t) _(u8, uint8_t) _(i16, int16_t) _(u16, uint16_t)
-            _(i32, int32_t) _(u32, uint32_t) _(i64, int64_t) _(u64, uint64_t)
+_(i8, int8_t)
+_(u8, uint8_t)
+_(i16, int16_t)
+_(u16, uint16_t)
+_(i32, int32_t)
+_(u32, uint32_t)
+_(i64, int64_t)
+_(u64, uint64_t)
 
 #undef _
 
@@ -145,18 +154,23 @@ _(uh, unsigned short) _(i, int) _(ui, unsigned int) _(l, long)
                                      size_t str_ele,    /* Element stride */   \
                                      size_t n_ele);     /* Number of elements */
 
-                _(float, f, ) _(double, d, ) _(float, f, _c0) _(double, d, _c0)
-                    _(float, f, _c1) _(double, d, _c1) _(float, f, _c)
-                        _(double, d, _c)
+_(float, f, )
+_(double, d, )
+_(float, f, _c0)
+_(double, d, _c0)
+_(float, f, _c1)
+_(double, d, _c1)
+_(float, f, _c)
+_(double, d, _c)
 
 #undef _
 
-    /* The normal generators generate a normally distributed random number
-       (f(x) = exp( -x^2 / 2 ) / sqrt( 2*pi ) for x in (-inf,inf)).  Based
-       on the Ziggurat method under the hood. */
+/* The normal generators generate a normally distributed random number
+   (f(x) = exp( -x^2 / 2 ) / sqrt( 2*pi ) for x in (-inf,inf)).  Based
+   on the Ziggurat method under the hood. */
 
-    float                      /* Returns sample deviate */
-    frandn(rng_t* RESTRICT r); /* Generator to use */
+float                      /* Returns sample deviate */
+frandn(rng_t* RESTRICT r); /* Generator to use */
 
 float*                         /* Returns x */
 frandn_fill(rng_t* RESTRICT r, /* Generator to use */
