@@ -112,7 +112,6 @@ void accumulate_rhob(field_t* RESTRICT ALIGNED(128) f,
                      const grid_t* RESTRICT g,
                      const float qsp);
 
-
 #if 0
 // In hydro_p.c
 

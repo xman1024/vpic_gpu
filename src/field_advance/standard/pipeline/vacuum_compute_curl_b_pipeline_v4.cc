@@ -1,9 +1,8 @@
 #define IN_sfa
 #define IN_vacuum_compute_curl_b_pipeline
 
-#include "vacuum_compute_curl_b_pipeline.h"
-
 #include "../sfa_private.h"
+#include "vacuum_compute_curl_b_pipeline.h"
 
 #if defined(V4_ACCELERATION)
 

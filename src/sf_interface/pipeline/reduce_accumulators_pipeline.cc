@@ -1,10 +1,8 @@
 #define IN_sf_interface
 
-#include "sf_interface_pipeline.h"
-
-#include "../sf_interface_private.h"
-
 #include "../../util/pipelines/pipelines_exec.h"
+#include "../sf_interface_private.h"
+#include "sf_interface_pipeline.h"
 
 // FIXME: N_ARRAY>1 ALWAYS BUT THIS ISN'T STRICTLY NECESSARY BECAUSE
 // HOST IS THREAD FOR THE SERIAL AND THREADED DISPATCHERS.  SHOULD
@@ -58,25 +56,29 @@ void reduce_accumulators_pipeline_scalar(accumulators_pipeline_args_t* args,
     A(k)      \
     B(k, 1)   \
     B(k, 2) B(k, 3) B(k, 4) B(k, 5) C(k, ((v0 + v1) + (v2 + v3)) + (v4 + v5))
-#define O6(k)                               \
+#define O6(k)                       \
+    A(k)                            \
+    B(k, 1)                         \
+    B(k, 2)                         \
+    B(k, 3) B(k, 4) B(k, 5) B(k, 6) \
+        C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + v6))
+#define O7(k)                               \
     A(k)                                    \
     B(k, 1)                                 \
-    B(k, 2) B(k, 3) B(k, 4) B(k, 5) B(k, 6) \
-        C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + v6))
-#define O7(k)                                       \
+    B(k, 2)                                 \
+    B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) \
+        C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7)))
+#define O8(k)                                       \
     A(k)                                            \
     B(k, 1)                                         \
-    B(k, 2) B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) \
-        C(k, ((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7)))
-#define O8(k)                                               \
+    B(k, 2)                                         \
+    B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) B(k, 8) \
+        C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + v8)
+#define O9(k)                                               \
     A(k)                                                    \
     B(k, 1)                                                 \
-    B(k, 2) B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) B(k, 8) \
-        C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + v8)
-#define O9(k)                                                       \
-    A(k)                                                            \
-    B(k, 1)                                                         \
-    B(k, 2) B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) B(k, 8) B(k, 9) \
+    B(k, 2)                                                 \
+    B(k, 3) B(k, 4) B(k, 5) B(k, 6) B(k, 7) B(k, 8) B(k, 9) \
         C(k, (((v0 + v1) + (v2 + v3)) + ((v4 + v5) + (v6 + v7))) + (v8 + v9))
 
 #else

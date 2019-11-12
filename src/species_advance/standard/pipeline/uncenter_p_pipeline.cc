@@ -4,13 +4,13 @@
 #define HAS_V8_PIPELINE
 #define HAS_V16_PIPELINE
 
-#include "spa_private.h"
+#include <cuda_runtime.h>
 
-#include "../../../util/pipelines/pipelines_exec.h"
 #include "../../../cuda/compute_f0_size.h"
 #include "../../../cuda/uncenter_p.h"
-#include <cuda_runtime.h>
 #include "../../../cuda/utils.h"
+#include "../../../util/pipelines/pipelines_exec.h"
+#include "spa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for an uncenter_p pipeline function which does not
@@ -22,8 +22,8 @@ void uncenter_p_pipeline_scalar(center_p_pipeline_args_t* args,
                                 int n_pipeline) {
     particle_t* ALIGNED(32) p;
 
-    const float qdt_2mc   = -args->qdt_2mc;        // For backward half advance
-    const float qdt_4mc   = -0.5 * args->qdt_2mc;  // For backward half rotate
+    const float qdt_2mc = -args->qdt_2mc;        // For backward half advance
+    const float qdt_4mc = -0.5 * args->qdt_2mc;  // For backward half rotate
 
     int first, n;
 
@@ -37,7 +37,8 @@ void uncenter_p_pipeline_scalar(center_p_pipeline_args_t* args,
 
     interpolator_t* f0;
     MALLOC(f0, f0_size);
-    CUDA_CHECK(cudaMemcpy(f0, args->f0, f0_size * sizeof(interpolator_t), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(f0, args->f0, f0_size * sizeof(interpolator_t),
+                          cudaMemcpyHostToDevice));
 
     uncenter_p_pipeline_cuda(p, n, f0, qdt_2mc, qdt_4mc);
 }

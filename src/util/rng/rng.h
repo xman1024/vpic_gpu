@@ -88,7 +88,8 @@ seed_rng(rng_t* RESTRICT r, /* Generator to seed */
 
 _(c, char)
 _(uc, unsigned char)
-_(h, short) _(uh, unsigned short) _(i, int) _(ui, unsigned int) _(l, long)
+_(h, short)
+_(uh, unsigned short) _(i, int) _(ui, unsigned int) _(l, long)
     _(ul, unsigned long)
 
         _(i8, int8_t) _(u8, uint8_t) _(i16, int16_t) _(u16, uint16_t)

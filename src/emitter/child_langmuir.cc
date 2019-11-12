@@ -1,7 +1,6 @@
 #define IN_emitter
-#include "emitter_private.h"
-
 #include "../cuda/utils.h"
+#include "emitter_private.h"
 
 /* Private interface *********************************************************/
 
@@ -90,19 +89,19 @@ void emit_child_langmuir(child_langmuir_t* RESTRICT cl,
                 np_skipped++;                                           \
                 continue;                                               \
             }                                                           \
-            u##X       = dir ut_para * sqrtf(2 * frande(rng));          \
-            u##Y       = ut_perp * frandn(rng);                         \
-            u##Z       = ut_perp * frandn(rng);                         \
+            u##X          = dir ut_para * sqrtf(2 * frande(rng));       \
+            u##Y          = ut_perp * frandn(rng);                      \
+            u##Z          = ut_perp * frandn(rng);                      \
             particle_t pa = device_fetch_var(p + np);                   \
-            pa.d##X = -(dir 1);                                      \
-            pa.d##Y = 2 * frand_c0(rng) - 1;                         \
-            pa.d##Z = 2 * frand_c0(rng) - 1;                         \
-            pa.i    = i;                                             \
-            pa.u##X = u##X;                                          \
-            pa.u##Y = u##Y;                                          \
-            pa.u##Z = u##Z;                                          \
-            pa.w    = w;                                             \
-            accumulate_rhob(f, &pa, g, -qsp);                        \
+            pa.d##X       = -(dir 1);                                   \
+            pa.d##Y       = 2 * frand_c0(rng) - 1;                      \
+            pa.d##Z       = 2 * frand_c0(rng) - 1;                      \
+            pa.i          = i;                                          \
+            pa.u##X       = u##X;                                       \
+            pa.u##Y       = u##Y;                                       \
+            pa.u##Z       = u##Z;                                       \
+            pa.w          = w;                                          \
+            accumulate_rhob(f, &pa, g, -qsp);                           \
             np++;                                                       \
                                                                         \
             /* Age the particle */                                      \

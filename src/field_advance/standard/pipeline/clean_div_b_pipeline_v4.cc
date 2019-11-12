@@ -1,9 +1,8 @@
 #define IN_sfa
 #define IN_clean_div_b_pipeline
 
-#include "clean_div_b_pipeline.h"
-
 #include "../sfa_private.h"
+#include "clean_div_b_pipeline.h"
 
 #if defined(V4_ACCELERATION)
 

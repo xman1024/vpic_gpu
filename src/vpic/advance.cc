@@ -107,17 +107,20 @@ int vpic_simulation::advance(void) {
 
         int nm                                    = sp->nm;
         particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
-        particle_t* p0      = sp->device_p0;
+        particle_t* p0                            = sp->device_p0;
         for (; nm; nm--, pm--) {
-            int i = pm->i;  // particle index we are removing
+            int i         = pm->i;  // particle index we are removing
             int32_t voxel = device_fetch_var(&p0[i].i);
             voxel >>= 3;
             device_set_var(&p0[i].i, voxel);
             // accumulate the particle's charge to the mesh
             particle_t p = device_fetch_var(p0 + i);
             accumulate_rhob(field_array->f, &p, sp->g, sp->q);
-            CUDA_CHECK(cudaMemcpy(p0 + i, p0 + sp->np - 1, sizeof(particle_t), cudaMemcpyDeviceToDevice)); // put the last particle into position i
-            sp->np--;                // decrement the number of particles
+            CUDA_CHECK(
+                cudaMemcpy(p0 + i, p0 + sp->np - 1, sizeof(particle_t),
+                           cudaMemcpyDeviceToDevice));  // put the last particle
+                                                        // into position i
+            sp->np--;  // decrement the number of particles
         }
         sp->nm = 0;
     }

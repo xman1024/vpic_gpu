@@ -2,9 +2,8 @@
  *~--------------------------------------------------------------------------~*/
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main()
-#include "catch.hpp"
-
 #include "../../util.h"
+#include "catch.hpp"
 #include "src/vpic/vpic_unit_deck.h"
 
 /* Sequence is from the 11213 generator with a seed of 1234 */

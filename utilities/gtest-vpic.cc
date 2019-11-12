@@ -2,6 +2,7 @@
  *~-------------------------------------------------------------------------~~*/
 
 #include <gtest/gtest.h>
+
 #include "../src/vpic/vpic.h"
 
 int main(int argc, char** argv) {

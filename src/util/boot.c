@@ -1,6 +1,5 @@
-#include "util.h"
-
 #include "stdio.h"
+#include "util.h"
 
 double _boot_timestamp = 0;
 

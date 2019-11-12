@@ -1,9 +1,8 @@
 #define IN_sfa
 #define IN_compute_curl_b_pipeline
 
-#include "compute_curl_b_pipeline.h"
-
 #include "../sfa_private.h"
+#include "compute_curl_b_pipeline.h"
 
 #if defined(V16_ACCELERATION)
 

@@ -1,11 +1,9 @@
+#include <bitset>  // TODO: Remove
 #include <fstream>
 #include <iostream>
+#include <limits>  // epsilon for limit
 #include <string>
-
-#include <limits>   // epsilon for limit
 #include <utility>  // pair
-
-#include <bitset>  // TODO: Remove
 
 namespace test_utils {
 /**

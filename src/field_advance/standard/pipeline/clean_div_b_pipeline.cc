@@ -7,9 +7,8 @@
 
 #include "clean_div_b_pipeline.h"
 
-#include "../sfa_private.h"
-
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../sfa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for a clean_div_b pipeline function which does not

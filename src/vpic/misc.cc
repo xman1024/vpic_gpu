@@ -93,15 +93,16 @@ void vpic_simulation::inject_particle(species_t* sp,
     iz++;             // Adjust for mesh indexing
 
     particle_t p;
-    p.dx         = (float)x;  // Note: Might be rounded to be on [-1,1]
-    p.dy         = (float)y;  // Note: Might be rounded to be on [-1,1]
-    p.dz         = (float)z;  // Note: Might be rounded to be on [-1,1]
-    p.i          = VOXEL(ix, iy, iz, nx, ny, nz);
-    p.ux         = (float)ux;
-    p.uy         = (float)uy;
-    p.uz         = (float)uz;
-    p.w          = w;
-    CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t), cudaMemcpyHostToDevice));
+    p.dx = (float)x;  // Note: Might be rounded to be on [-1,1]
+    p.dy = (float)y;  // Note: Might be rounded to be on [-1,1]
+    p.dz = (float)z;  // Note: Might be rounded to be on [-1,1]
+    p.i  = VOXEL(ix, iy, iz, nx, ny, nz);
+    p.ux = (float)ux;
+    p.uy = (float)uy;
+    p.uz = (float)uz;
+    p.w  = w;
+    CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t),
+                          cudaMemcpyHostToDevice));
 
     if (update_rhob)
         accumulate_rhob(field_array->f, &p, grid, -sp->q);
@@ -115,7 +116,8 @@ void vpic_simulation::inject_particle(species_t* sp,
         pm->dispy = uy * age * grid->rdy;
         pm->dispz = uz * age * grid->rdz;
         pm->i     = sp->np - 1;
-        sp->nm += cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
+        sp->nm +=
+            cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
     }
 }
 

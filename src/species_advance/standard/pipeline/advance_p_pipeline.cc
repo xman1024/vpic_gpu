@@ -9,9 +9,8 @@
 #define HAS_V8_PIPELINE
 #define HAS_V16_PIPELINE
 
-#include "spa_private.h"
-
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "spa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for an advance_p pipeline function which does not

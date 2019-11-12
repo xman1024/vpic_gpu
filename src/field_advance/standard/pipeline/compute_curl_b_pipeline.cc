@@ -7,9 +7,8 @@
 
 #include "compute_curl_b_pipeline.h"
 
-#include "../sfa_private.h"
-
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../sfa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for a compute_curl_b pipeline function which does

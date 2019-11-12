@@ -2,10 +2,10 @@
  *~--------------------------------------------------------------------------~*/
 
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main()
-#include "catch.hpp"
+#include "../v4.h"
 
 #include "../../util.h"
-#include "../v4.h"
+#include "catch.hpp"
 
 using namespace v4;
 

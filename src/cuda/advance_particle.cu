@@ -164,8 +164,7 @@ __global__ void particle_move_kernel(particle_t* p0,
     }
 }
 
-void run_kernel(
-                particle_t* device_p0,// wielkość n
+void run_kernel(particle_t* device_p0,  // wielkość n
                 int n,
                 const interpolator_t* f0,  // wielkość accumulator_size
                 accumulator_t* a0,         // wielkość interpolator_size

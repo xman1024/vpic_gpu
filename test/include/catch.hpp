@@ -3596,6 +3596,7 @@ void addReporter(IStreamingReporterPtr& existingReporter,
 
 // end catch_interfaces_reporter.h
 #include <assert.h>
+
 #include <algorithm>
 #include <cfloat>
 #include <cstdio>
@@ -9480,6 +9481,7 @@ std::string extractClassName(std::string const& classOrQualifiedMethodName) {
 // start catch_test_case_tracker.cpp
 
 #include <assert.h>
+
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
@@ -10617,6 +10619,7 @@ void XmlWriter::newlineIfNecessary() {
 // start catch_reporter_bases.cpp
 
 #include <assert.h>
+
 #include <cfloat>
 #include <cstdio>
 #include <cstring>

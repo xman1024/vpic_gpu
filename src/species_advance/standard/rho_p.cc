@@ -10,11 +10,13 @@
 
 #define IN_spa
 
-#include "../species_advance.h"
-#include "../../cuda/compute_f0_size.h"
 #include "../../cuda/rho_p.h"
+
 #include <cuda_runtime.h>
+
+#include "../../cuda/compute_f0_size.h"
 #include "../../cuda/utils.h"
+#include "../species_advance.h"
 
 // accumulate_rho_p adds the charge density associated with the
 // supplied particle array to the rhof of the fields.  Trilinear
@@ -49,11 +51,13 @@ void accumulate_rho_p(/**/ field_array_t* RESTRICT fa,
 
     field_t* f;
     CUDA_CHECK(cudaMalloc((void**)&f, sizeof(field_t) * f_size));
-    CUDA_CHECK(cudaMemcpy(f, fa->f, sizeof(field_t) * f_size, cudaMemcpyHostToDevice));
+    CUDA_CHECK(
+        cudaMemcpy(f, fa->f, sizeof(field_t) * f_size, cudaMemcpyHostToDevice));
 
     rho_p_cuda(p, q_8V, np, sy, sz, f);
 
-    CUDA_CHECK(cudaMemcpy(fa->f, f, sizeof(field_t) * f_size, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(
+        cudaMemcpy(fa->f, f, sizeof(field_t) * f_size, cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaFree(f));
 }
 
@@ -62,7 +66,6 @@ void accumulate_rhob(field_t* RESTRICT ALIGNED(128) f,
                      const particle_t* RESTRICT ALIGNED(32) p,
                      const grid_t* RESTRICT g,
                      const float qsp) {
-
     // See note in rhof for why this variant is used.
     float w0 = p->dx, w1 = p->dy, w2, w3, w4, w5, w6, w7, dz = p->dz;
     int v = p->i, x, y, z, sy = g->sy, sz = g->sz;

@@ -13,13 +13,14 @@
 #ifndef vpic_h
 #define vpic_h
 
-#include <cmath>
 #include <cuda_runtime.h>
+
+#include <cmath>
 #include <vector>
 
 #include "../boundary/boundary.h"
-#include "../cuda/utils.h"
 #include "../cuda/move_p.h"
+#include "../cuda/utils.h"
 #include "../emitter/emitter.h"
 // FIXME: INCLUDES ONCE ALL IS CLEANED UP
 #include "../util/bitfield.h"
@@ -561,15 +562,16 @@ class vpic_simulation {
                                     float uz,
                                     float w) {
         particle_t p;
-        p.dx                  = dx;
-        p.dy                  = dy;
-        p.dz                  = dz;
-        p.i                   = i;
-        p.ux                  = ux;
-        p.uy                  = uy;
-        p.uz                  = uz;
-        p.w                   = w;
-        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t), cudaMemcpyHostToDevice));
+        p.dx = dx;
+        p.dy = dy;
+        p.dz = dz;
+        p.i  = i;
+        p.ux = ux;
+        p.uy = uy;
+        p.uz = uz;
+        p.w  = w;
+        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p,
+                              sizeof(particle_t), cudaMemcpyHostToDevice));
     }
 
     // This variant does a raw inject and moves the particles
@@ -589,23 +591,25 @@ class vpic_simulation {
                                     int update_rhob) {
         particle_t p;
         particle_mover_t* RESTRICT pm = sp->pm + sp->nm;
-        p.dx                         = dx;
-        p.dy                         = dy;
-        p.dz                         = dz;
-        p.i                          = i;
-        p.ux                         = ux;
-        p.uy                         = uy;
-        p.uz                         = uz;
-        p.w                          = w;
+        p.dx                          = dx;
+        p.dy                          = dy;
+        p.dz                          = dz;
+        p.i                           = i;
+        p.ux                          = ux;
+        p.uy                          = uy;
+        p.uz                          = uz;
+        p.w                           = w;
         pm->dispx                     = dispx;
         pm->dispy                     = dispy;
         pm->dispz                     = dispz;
         pm->i                         = sp->np - 1;
 
-        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t), cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p,
+                              sizeof(particle_t), cudaMemcpyHostToDevice));
         if (update_rhob)
             accumulate_rhob(field_array->f, &p, grid, -sp->q);
-        sp->nm += cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
+        sp->nm +=
+            cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
     }
 
     //////////////////////////////////

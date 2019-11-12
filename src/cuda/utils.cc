@@ -1,5 +1,6 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+
 #include <iostream>
 
 void detect_cuda_init() {

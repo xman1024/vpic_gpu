@@ -3,9 +3,8 @@
 
 #include "vacuum_clean_div_e_pipeline.h"
 
-#include "../sfa_private.h"
-
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../sfa_private.h"
 
 static void vacuum_clean_div_e_pipeline_scalar(pipeline_args_t* args,
                                                int pipeline_rank,

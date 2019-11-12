@@ -1,8 +1,8 @@
 #define IN_boundary
-#include "boundary_private.h"
-
 #include <cuda_runtime.h>
+
 #include "../cuda/utils.h"
+#include "boundary_private.h"
 // If this is defined particle and mover buffers will not resize dynamically
 // (This is the common case for the users)
 //#define DISABLE_DYNAMIC_RESIZING
@@ -198,7 +198,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 face  = voxel & 7;
                 voxel >>= 3;
                 device_set_var(&(p0[i].i), voxel);
-                nn      = neighbor[6 * voxel + face];
+                nn = neighbor[6 * voxel + face];
 
                 // Absorb
 
@@ -276,7 +276,8 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             backfill:
 
                 np--;
-                CUDA_CHECK(cudaMemcpy(p0 + i, p0 + np, sizeof(particle_t), cudaMemcpyDeviceToDevice));
+                CUDA_CHECK(cudaMemcpy(p0 + i, p0 + np, sizeof(particle_t),
+                                      cudaMemcpyDeviceToDevice));
             }
 
             sp->np = np;
@@ -361,7 +362,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                                       cudaMemcpyDeviceToDevice));
                 CUDA_CHECK(cudaFree(sp->device_p0));
                 sp->device_p0 = new_device_p0;
-                sp->max_np = n;
+                sp->max_np    = n;
 
                 /*nm = sp->max_nm * resize_ratio;
                 WARNING(( "Resizing local %s mover storage from %i to %i",
@@ -388,7 +389,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                                       cudaMemcpyDeviceToDevice));
                 CUDA_CHECK(cudaFree(sp->device_p0));
                 sp->device_p0 = new_device_p0;
-                sp->max_np = n;
+                sp->max_np    = n;
 
                 /*nm = sp->max_nm * resize_ratio;
                 WARNING(( "Resizing (shrinking) local %s mover storage from "
@@ -555,15 +556,14 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                      n_dropped_movers[sp->id], sp->name));
 #endif
             // tu jest dopisywanie nowych do listy
-            CUDA_CHECK(cudaMemcpy(sp->device_p0 + sp->np, sp_p[sp->id], sp_np[sp->id] * sizeof(particle_t), cudaMemcpyHostToDevice));
+            CUDA_CHECK(cudaMemcpy(sp->device_p0 + sp->np, sp_p[sp->id],
+                                  sp_np[sp->id] * sizeof(particle_t),
+                                  cudaMemcpyHostToDevice));
             sp->np += sp_np[sp->id];
             sp->nm = sp_nm[sp->id];
         }
 
-
-        LIST_FOR_EACH(sp, sp_list) {
-            FREE(sp_p[sp->id]);
-        }
+        LIST_FOR_EACH(sp, sp_list) { FREE(sp_p[sp->id]); }
     } while (0);
 
     for (face = 0; face < 6; face++)

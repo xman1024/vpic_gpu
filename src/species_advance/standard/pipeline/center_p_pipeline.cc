@@ -4,13 +4,13 @@
 #define HAS_V8_PIPELINE
 #define HAS_V16_PIPELINE
 
-#include "spa_private.h"
-
-#include "../../../util/pipelines/pipelines_exec.h"
-#include "../../../cuda/compute_f0_size.h"
-#include "../../../cuda/center_p.h"
 #include <cuda_runtime.h>
+
+#include "../../../cuda/center_p.h"
+#include "../../../cuda/compute_f0_size.h"
 #include "../../../cuda/utils.h"
+#include "../../../util/pipelines/pipelines_exec.h"
+#include "spa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for a center_p pipeline function which does not
@@ -22,8 +22,8 @@ void center_p_pipeline_scalar(center_p_pipeline_args_t* args,
                               int n_pipeline) {
     particle_t* ALIGNED(32) p;
 
-    const float qdt_2mc        = args->qdt_2mc;
-    const float qdt_4mc        = 0.5 * args->qdt_2mc;  // For half Boris rotate
+    const float qdt_2mc = args->qdt_2mc;
+    const float qdt_4mc = 0.5 * args->qdt_2mc;  // For half Boris rotate
 
     int first, n;
 
@@ -37,7 +37,8 @@ void center_p_pipeline_scalar(center_p_pipeline_args_t* args,
 
     interpolator_t* f0;
     MALLOC(f0, f0_size);
-    CUDA_CHECK(cudaMemcpy(f0, args->f0, f0_size * sizeof(interpolator_t), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(f0, args->f0, f0_size * sizeof(interpolator_t),
+                          cudaMemcpyHostToDevice));
 
     center_p_pipeline_cuda(p, n, f0, qdt_2mc, qdt_4mc);
 }

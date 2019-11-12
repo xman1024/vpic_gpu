@@ -1,11 +1,15 @@
-#include "uncenter_p.h"
-#include "utils.h"
 #include <cuda_runtime.h>
 
-__global__ void uncenter_p_kernel(particle_t* p, int n, interpolator_t* f0, const float qdt_2mc, const float qdt_4mc)
-{
-    const float one       = 1.0;
-    const float one_third = 1.0 / 3.0;
+#include "uncenter_p.h"
+#include "utils.h"
+
+__global__ void uncenter_p_kernel(particle_t* p,
+                                  int n,
+                                  interpolator_t* f0,
+                                  const float qdt_2mc,
+                                  const float qdt_4mc) {
+    const float one            = 1.0;
+    const float one_third      = 1.0 / 3.0;
     const float two_fifteenths = 2.0 / 15.0;
 
     float dx, dy, dz, ux, uy, uz;
@@ -68,7 +72,10 @@ __global__ void uncenter_p_kernel(particle_t* p, int n, interpolator_t* f0, cons
     }
 }
 
-void center_p_pipeline_cuda(particle_t* p, int n, interpolator_t* f0, const float qdt_2mc, const float qdt_4mc)
-{
+void center_p_pipeline_cuda(particle_t* p,
+                            int n,
+                            interpolator_t* f0,
+                            const float qdt_2mc,
+                            const float qdt_4mc) {
     uncenter_p_kernel<<<1, 1>>>(p, n, f0, qdt_2mc, qdt_4mc);
 }

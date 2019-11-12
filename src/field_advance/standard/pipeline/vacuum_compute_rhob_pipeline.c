@@ -5,9 +5,8 @@
 
 #include "vacuum_compute_rhob_pipeline.h"
 
-#include "../sfa_private.h"
-
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../sfa_private.h"
 
 void vacuum_compute_rhob_pipeline_scalar(pipeline_args_t* args,
                                          int pipeline_rank,

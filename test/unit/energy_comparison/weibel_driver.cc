@@ -5,12 +5,10 @@
 // TODO: this import may ultimately be a bad idea, but it lets you paste an
 // input deck in...
 
+#include "compare_energies.h"
 #include "deck/wrapper.h"
-
 #include "src/species_advance/species_advance.h"
 #include "src/vpic/vpic.h"
-
-#include "compare_energies.h"
 
 begin_globals {
     double energies_interval;

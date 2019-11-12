@@ -1,9 +1,8 @@
 #define IN_sfa
 #define IN_vacuum_advance_e_pipeline
 
-#include "vacuum_advance_e_pipeline.h"
-
 #include "../sfa_private.h"
+#include "vacuum_advance_e_pipeline.h"
 
 #if defined(V16_ACCELERATION)
 

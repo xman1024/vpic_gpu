@@ -1,9 +1,9 @@
 #include "../util/util_base.h"
 #include "advance_particle.h"
 #include "debug.h"
+#include "move_p.h"
 #include "perf_measure.h"
 #include "utils.h"
-#include "move_p.h"
 
 __global__ void cuda_move_p_kernel(particle_t* p0,
                                    particle_mover_t* pm,
@@ -179,11 +179,10 @@ void cuda_move_p(particle_t* p0,
 }
 
 int cuda_move_p(particle_t* p0,
-           particle_mover_t* ALIGNED(16) pm,
-           accumulator_t* ALIGNED(128) a0,
-           const grid_t* g,
-           const float qsp)
-{
+                particle_mover_t* ALIGNED(16) pm,
+                accumulator_t* ALIGNED(128) a0,
+                const grid_t* g,
+                const float qsp) {
     // TODO(lukaszk)
     return 0;
 }

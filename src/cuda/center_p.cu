@@ -1,9 +1,13 @@
-#include "center_p.h"
-#include "utils.h"
 #include <cuda_runtime.h>
 
-__global__ void center_p_kernel(particle_t* p, int n, interpolator_t* f0, const float qdt_2mc, const float qdt_4mc)
-{
+#include "center_p.h"
+#include "utils.h"
+
+__global__ void center_p_kernel(particle_t* p,
+                                int n,
+                                interpolator_t* f0,
+                                const float qdt_2mc,
+                                const float qdt_4mc) {
     const interpolator_t* f;
 
     float dx, dy, dz, ux, uy, uz;
@@ -68,7 +72,10 @@ __global__ void center_p_kernel(particle_t* p, int n, interpolator_t* f0, const 
     }
 }
 
-void center_p_pipeline_cuda(particle_t* p, int n, interpolator_t* f0, const float qdt_2mc, const float qdt_4mc)
-{
+void center_p_pipeline_cuda(particle_t* p,
+                            int n,
+                            interpolator_t* f0,
+                            const float qdt_2mc,
+                            const float qdt_4mc) {
     center_p_kernel<<<1, 1>>>(p, n, f0, qdt_2mc, qdt_4mc);
 }

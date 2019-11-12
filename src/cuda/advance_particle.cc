@@ -1,7 +1,10 @@
 #include "advance_particle.h"
+
 #include <cuda_runtime.h>
+
 #include <iostream>
 #include <vector>
+
 #include "../util/util_base.h"
 #include "debug.h"
 #define IN_spa

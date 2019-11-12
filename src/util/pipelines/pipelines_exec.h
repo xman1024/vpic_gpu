@@ -5,11 +5,10 @@
 // Include some stuff that is common to both Pthreads and OpenMP.
 //----------------------------------------------------------------------------//
 
-#include "pipelines.h"
-
 #include "../v16/v16.h"
 #include "../v4/v4.h"
 #include "../v8/v8.h"
+#include "pipelines.h"
 
 //----------------------------------------------------------------------------//
 // Make sure that pipelines_exec_pth.h and pipelines_exec_omp.h can only be

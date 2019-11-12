@@ -1,9 +1,14 @@
-#include "center_p.cu"
-#include "utils.h"
 #include <cuda_runtime.h>
 
-__global__ void rho_p_kernel(const particle_t* p, const float q_8V, const int np, const int sy, const int sz, field_t* f)
-{
+#include "center_p.cu"
+#include "utils.h"
+
+__global__ void rho_p_kernel(const particle_t* p,
+                             const float q_8V,
+                             const int np,
+                             const int sy,
+                             const int sz,
+                             field_t* f) {
     float w0, w1, w2, w3, w4, w5, w6, w7, dz;
 
     int n, v;
@@ -57,11 +62,14 @@ __global__ void rho_p_kernel(const particle_t* p, const float q_8V, const int np
         f[v + sz + 1].rhof += w5;
         f[v + sz + sy].rhof += w6;
         f[v + sz + sy + 1].rhof += w7;
-
     }
 }
 
-void rho_p_cuda(const particle_t* p, const float q_8V, const int np, const int sy, const int sz, field_t* f)
-{
+void rho_p_cuda(const particle_t* p,
+                const float q_8V,
+                const int np,
+                const int sy,
+                const int sz,
+                field_t* f) {
     rho_p_kernel<<<1, 1>>>(p, q_8V, np, sy, sz, f);
 }

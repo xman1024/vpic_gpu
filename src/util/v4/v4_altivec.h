@@ -709,13 +709,21 @@ inline v4int operator--(v4int& a, int) {
 
 BINARY(+, c.v = (_v4_float)vec_add((_v4_int)a.v, (_v4_int)b.v))
 BINARY(-, c.v = (_v4_float)vec_sub((_v4_int)a.v, (_v4_int)b.v))
-BINARY(*,  union { int i[4]; _v4_float v; } t;
-             union { int i[4]; _v4_float v; } u;
-             t.v = a.v; u.v = b.v;
-             c.v = (_v4_float)((_v4_int){ t.i[0]*u.i[0],
-                                          t.i[1]*u.i[1],
-                                          t.i[2]*u.i[2],
-                                          t.i[3]*u.i[3] }) ) // FIXME: Sigh ...
+BINARY(
+        *,
+        union {
+            int i[4];
+            _v4_float v;
+        } t;
+        union {
+            int i[4];
+            _v4_float v;
+        } u;
+        t.v = a.v;
+        u.v = b.v;
+        c.v = (_v4_float)((_v4_int){t.i[0] * u.i[0], t.i[1] * u.i[1],
+                                    t.i[2] * u.i[2],
+                                    t.i[3] * u.i[3]}))  // FIXME: Sigh ...
 BINARY(
     /,
     union {
@@ -1214,8 +1222,8 @@ LOGICAL(||,
 
 CMATH_FR1(acos)
 CMATH_FR1(asin)
-CMATH_FR1(atan) CMATH_FR2(atan2) CMATH_FR1(ceil) CMATH_FR1(cos) CMATH_FR1(cosh)
-    CMATH_FR1(exp)
+CMATH_FR1(atan)
+CMATH_FR2(atan2) CMATH_FR1(ceil) CMATH_FR1(cos) CMATH_FR1(cosh) CMATH_FR1(exp)
     /*CMATH_FR1(fabs)*/ CMATH_FR1(floor) CMATH_FR2(fmod) CMATH_FR1(log)
         CMATH_FR1(log10) CMATH_FR2(pow) CMATH_FR1(sin) CMATH_FR1(sinh)
     /*CMATH_FR1(sqrt)*/ CMATH_FR1(tan) CMATH_FR1(tanh)

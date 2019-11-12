@@ -1,6 +1,5 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main()
 #include "catch.hpp"
-
 #include "src/species_advance/species_advance.h"
 #include "src/vpic/vpic.h"
 #include "test/integrated/particle_push/advance_p.h"

@@ -1,9 +1,10 @@
-#include <gtest/gtest.h>
-
-#include "../../util.h"
 #include "../v16.h"
 
+#include <gtest/gtest.h>
+
 #include <iostream>
+
+#include "../../util.h"
 
 using namespace v16;
 

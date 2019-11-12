@@ -4,13 +4,13 @@
 #define HAS_V8_PIPELINE
 #define HAS_V16_PIPELINE
 
-#include "spa_private.h"
-
-#include "../../../util/pipelines/pipelines_exec.h"
-#include "../../../cuda/compute_f0_size.h"
-#include "../../../cuda/utils.h"
-#include "../../../cuda/energy_p.h"
 #include <cuda_runtime.h>
+
+#include "../../../cuda/compute_f0_size.h"
+#include "../../../cuda/energy_p.h"
+#include "../../../cuda/utils.h"
+#include "../../../util/pipelines/pipelines_exec.h"
+#include "spa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for an energy_p pipeline function which does not
@@ -21,7 +21,7 @@
 void energy_p_pipeline_scalar(energy_p_pipeline_args_t* RESTRICT args,
                               int pipeline_rank,
                               int n_pipeline) {
-    const particle_t* p      = args->p;
+    const particle_t* p = args->p;
 
     const float qdt_2mc = args->qdt_2mc;
     const float msp     = args->msp;
@@ -39,7 +39,8 @@ void energy_p_pipeline_scalar(energy_p_pipeline_args_t* RESTRICT args,
     interpolator_t* f;
     int f0_size = compute_f0_size(p + n0, n1);
     CUDA_CHECK(cudaMalloc((void**)&f, f0_size * sizeof(interpolator_t)));
-    CUDA_CHECK(cudaMemcpy(f, args->f, f0_size * sizeof(interpolator_t), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(f, args->f, f0_size * sizeof(interpolator_t),
+                          cudaMemcpyHostToDevice));
 
     // Process particles quads for this pipeline.
 

@@ -1,10 +1,15 @@
-#include "energy_p.h"
-#include "utils.h"
 #include <cuda_runtime.h>
 
-__global__ void energy_p_kernel(const particle_t* p, int n0, interpolator_t* f, const float qdt_2mc, const float msp, double* en)
-{
-    const float one     = 1.0;
+#include "energy_p.h"
+#include "utils.h"
+
+__global__ void energy_p_kernel(const particle_t* p,
+                                int n0,
+                                interpolator_t* f,
+                                const float qdt_2mc,
+                                const float msp,
+                                double* en) {
+    const float one = 1.0;
 
     float dx, dy, dz;
     float v0, v1, v2;
@@ -33,7 +38,11 @@ __global__ void energy_p_kernel(const particle_t* p, int n0, interpolator_t* f, 
     }
 }
 
-void energy_p_pipeline_cuda(const particle_t* p, int n, interpolator_t* f0, const float qdt_2mc, const float msp, double* en)
-{
+void energy_p_pipeline_cuda(const particle_t* p,
+                            int n,
+                            interpolator_t* f0,
+                            const float qdt_2mc,
+                            const float msp,
+                            double* en) {
     energy_p_kernel<<<1, 1>>>(p, n, f0, qdt_2mc, msp, en);
 }

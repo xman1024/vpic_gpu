@@ -9,10 +9,9 @@
 
 #define IN_spa
 
-#include "spa_private.h"
-
-#include "../../../util/pipelines/pipelines_exec.h"
 #include "../../../cuda/utils.h"
+#include "../../../util/pipelines/pipelines_exec.h"
+#include "spa_private.h"
 
 //----------------------------------------------------------------------------//
 // This is the new thread parallel version of the particle sort.
@@ -105,7 +104,8 @@ void coarse_sort_pipeline_scalar(sort_p_pipeline_args_t* args,
     for (; i < i1; i++) {
         j = next[V2P(device_fetch_var(&p_src[i].i), n_subsort, vl, vh)]++;
 
-        CUDA_CHECK(cudaMemcpy(p_dst + j, p_dst + i, sizeof(particle_t), cudaMemcpyDeviceToDevice));
+        CUDA_CHECK(cudaMemcpy(p_dst + j, p_dst + i, sizeof(particle_t),
+                              cudaMemcpyDeviceToDevice));
     }
 }
 
@@ -166,8 +166,8 @@ void subsort_pipeline_scalar(sort_p_pipeline_args_t* args,
             v = device_fetch_var(&p_src[i].i);
             j = next[v]++;
 
-            CUDA_CHECK(cudaMemcpy(p_dst + j, p_src + i, sizeof(particle_t), cudaMemcpyDeviceToDevice));
-
+            CUDA_CHECK(cudaMemcpy(p_dst + j, p_src + i, sizeof(particle_t),
+                                  cudaMemcpyDeviceToDevice));
         }
     }
 }
@@ -217,14 +217,15 @@ void sort_p_pipeline(species_t* sp) {
 
     // Ensure enough scratch space is allocated for the sorting.
     sz_scratch =
-        (sizeof(particle_t) * n_particle + 128 + sizeof(*partition) * n_voxel + 128 +
-         sizeof(*coarse_partition) * (cp_stride * n_pipeline + 1));
+        (sizeof(particle_t) * n_particle + 128 + sizeof(*partition) * n_voxel +
+         128 + sizeof(*coarse_partition) * (cp_stride * n_pipeline + 1));
 
     if (sz_scratch > max_scratch) {
         CUDA_CHECK(cudaFree(device_scratch));
         FREE_ALIGNED(scratch);
 
-        CUDA_CHECK(cudaMalloc((void**)&device_scratch, sizeof(particle_t) * sz_scratch));
+        CUDA_CHECK(cudaMalloc((void**)&device_scratch,
+                              sizeof(particle_t) * sz_scratch));
         MALLOC_ALIGNED(scratch, sz_scratch, 128);
 
         max_scratch = sz_scratch;
@@ -308,7 +309,8 @@ void sort_p_pipeline(species_t* sp) {
         // above. Copy it to the right place and undo the above hack. FIXME: IF
         // WILLING TO MOVE SP->P AROUND AND DO MORE MALLOCS PER STEP I.E. HEAP
         // FRAGMENTATION, COULD AVOID THIS COPY.
-        CUDA_CHECK(cudaMemcpy(p, aux_p, sizeof(particle_t) * n_particle, cudaMemcpyDeviceToDevice));
+        CUDA_CHECK(cudaMemcpy(p, aux_p, sizeof(particle_t) * n_particle,
+                              cudaMemcpyDeviceToDevice));
         COPY(p, aux_p, n_particle);
     }
 }

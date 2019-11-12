@@ -7,9 +7,8 @@
 
 #include "advance_e_pipeline.h"
 
-#include "../sfa_private.h"
-
 #include "../../../util/pipelines/pipelines_exec.h"
+#include "../sfa_private.h"
 
 //----------------------------------------------------------------------------//
 // Reference implementation for an advance_e pipeline function which does not
