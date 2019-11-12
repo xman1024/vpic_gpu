@@ -184,7 +184,7 @@ int cuda_move_p(particle_t* p0,
                 const grid_t* g,
                 const float qsp) {
     particle_t p_host;
-    p_host = device_fetch_var(p0);
+    p_host  = device_fetch_var(p0);
     int ret = move_p(&p_host, pm, a0, g, qsp);
     device_set_var(p0, p_host);
     return ret;

@@ -13,9 +13,11 @@
 
 #define IN_spa
 
+#include <cuda_runtime.h>
+
+#include "../../cuda/utils.h"
 #include "../species_advance.h"
 
-#if 0
 // accumulate_hydro_p adds the hydrodynamic fields associated with the
 // supplied particle_list to the hydro array.  Trilinear interpolation
 // is used.  hydro is known at the nodes at the same time as particle
@@ -28,7 +30,7 @@ void accumulate_hydro_p(hydro_array_t* RESTRICT ha,
                         const species_t* RESTRICT sp,
                         const interpolator_array_t* RESTRICT ia) {
     /**/ hydro_t* RESTRICT ALIGNED(128) h;
-    const particle_t* RESTRICT ALIGNED(128) p;
+    particle_t* p;
     const interpolator_t* RESTRICT ALIGNED(128) f;
     float c, qsp, mspc, qdt_2mc, qdt_4mc2, r8V;
     int np, stride_10, stride_21, stride_43;
@@ -40,8 +42,10 @@ void accumulate_hydro_p(hydro_array_t* RESTRICT ha,
     if (!ha || !sp || !ia || ha->g != sp->g || ha->g != ia->g)
         ERROR(("Bad args"));
 
+    MALLOC(p, sp->np);
+    CUDA_CHECK(cudaMemcpy(p, sp->device_p0, sizeof(particle_t) * sp->np,
+                          cudaMemcpyDeviceToHost));
     h = ha->h;
-    p = sp->p;
     f = ia->i;
 
     c        = sp->g->cvac;
@@ -175,5 +179,3 @@ void accumulate_hydro_p(hydro_array_t* RESTRICT ha,
 #undef ACCUM_HYDRO
     }
 }
-
-#endif

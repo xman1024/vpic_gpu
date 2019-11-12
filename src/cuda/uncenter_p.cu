@@ -73,9 +73,9 @@ __global__ void uncenter_p_kernel(particle_t* p,
 }
 
 void uncenter_p_pipeline_cuda(particle_t* p,
-                            int n,
-                            interpolator_t* f0,
-                            const float qdt_2mc,
-                            const float qdt_4mc) {
+                              int n,
+                              interpolator_t* f0,
+                              const float qdt_2mc,
+                              const float qdt_4mc) {
     uncenter_p_kernel<<<1, 1>>>(p, n, f0, qdt_2mc, qdt_4mc);
 }

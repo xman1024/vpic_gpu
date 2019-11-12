@@ -751,7 +751,6 @@ void vpic_simulation::field_dump(DumpParameters& dumpParams) {
         ERROR(("File close failed on field dump!!!"));
 }
 
-#if 0
 void vpic_simulation::hydro_dump(const char* speciesname,
                                  DumpParameters& dumpParams) {
     // Create directory for this time step
@@ -914,4 +913,3 @@ void vpic_simulation::hydro_dump(const char* speciesname,
     if (fileIO.close())
         ERROR(("File close failed on hydro dump!!!"));
 }
-#endif
