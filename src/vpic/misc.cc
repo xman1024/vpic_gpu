@@ -101,7 +101,10 @@ void vpic_simulation::inject_particle(species_t* sp,
     p.uy = (float)uy;
     p.uz = (float)uz;
     p.w  = w;
-    CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t),
+    if(sp->host_p0)
+        *(sp->host_p0 + (sp->np++)) = p;
+    else
+        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p, sizeof(particle_t),
                           cudaMemcpyHostToDevice));
 
     if (update_rhob)
@@ -116,8 +119,19 @@ void vpic_simulation::inject_particle(species_t* sp,
         pm->dispy = uy * age * grid->rdy;
         pm->dispz = uz * age * grid->rdz;
         pm->i     = sp->np - 1;
-        sp->nm +=
-            cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
+        if(sp->host_p0)
+        {
+            sp->nm +=
+                move_p(sp->host_p0, pm, accumulator_array->a, grid, sp->q);
+        }
+        else
+        {
+            // TODO to nie zadziała
+            sp->nm +=
+                cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
+        }
+        
+        
     }
 }
 
