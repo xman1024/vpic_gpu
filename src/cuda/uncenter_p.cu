@@ -72,7 +72,7 @@ __global__ void uncenter_p_kernel(particle_t* p,
     }
 }
 
-void center_p_pipeline_cuda(particle_t* p,
+void uncenter_p_pipeline_cuda(particle_t* p,
                             int n,
                             interpolator_t* f0,
                             const float qdt_2mc,

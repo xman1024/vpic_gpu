@@ -1,6 +1,6 @@
 #include <cuda_runtime.h>
 
-#include "center_p.cu"
+#include "rho_p.h"
 #include "utils.h"
 
 __global__ void rho_p_kernel(const particle_t* p,
