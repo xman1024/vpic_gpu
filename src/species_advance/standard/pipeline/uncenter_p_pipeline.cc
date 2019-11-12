@@ -36,7 +36,7 @@ void uncenter_p_pipeline_scalar(center_p_pipeline_args_t* args,
     int f0_size = compute_f0_size(p, n);
 
     interpolator_t* f0;
-    MALLOC(f0, f0_size);
+    CUDA_CHECK(cudaMalloc((void**)&f0, sizeof(interpolator_t) * f0_size));
     CUDA_CHECK(cudaMemcpy(f0, args->f0, f0_size * sizeof(interpolator_t),
                           cudaMemcpyHostToDevice));
 
