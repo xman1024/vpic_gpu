@@ -183,6 +183,9 @@ int cuda_move_p(particle_t* p0,
                 accumulator_t* ALIGNED(128) a0,
                 const grid_t* g,
                 const float qsp) {
-    // TODO(lukaszk)
-    return 0;
+    particle_t p_host;
+    p_host = device_fetch_var(p0);
+    int ret = move_p(&p_host, pm, accumulator_array->a, grid, sp->q);
+    device_set_var(p0, p_host);
+    return ret;
 }
