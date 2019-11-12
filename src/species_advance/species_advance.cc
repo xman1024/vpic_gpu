@@ -135,12 +135,11 @@ species_t* species(const char* name,
     sp->q = q;
     sp->m = m;
 
-    //    MALLOC_ALIGNED(sp->p, max_local_np, 128);
-    CUDA_CHECK(
-        cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * max_local_np));
+    MALLOC_ALIGNED(sp->host_p0, max_local_np, 128);
+    sp->device_p0 = nullptr;
     sp->max_np = max_local_np;
-    CUDA_CHECK(
-        cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
+    //CUDA_CHECK(
+    //    cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
 
     MALLOC_ALIGNED(sp->pm, max_local_nm, 128);
     sp->max_nm = max_local_nm;
