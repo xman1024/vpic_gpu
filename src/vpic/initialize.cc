@@ -14,7 +14,7 @@ void vpic_simulation::initialize(int argc, char** argv) {
         CUDA_CHECK(
             cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
         CUDA_CHECK(
-            cudaMemcpy(sp->device_p0, sp->host_p0, sizeof(particle_t) * sp->max_np, cudeMemcpyDeviceToHost));
+            cudaMemcpy(sp->device_p0, sp->host_p0, sizeof(particle_t) * sp->max_np, cudaMemcpyDeviceToHost));
         FREE_ALIGNED(sp->host_p0);
         sp->host_p0 = nullptr;
     }
