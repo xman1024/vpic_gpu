@@ -169,7 +169,6 @@ void run_kernel(particle_t* device_p0,  // wielkość n
                 const interpolator_t* f0,  // wielkość accumulator_size
                 accumulator_t* a0,         // wielkość interpolator_size
                 particle_mover_t* pm,
-                particle_mover_t* device_pm,
                 const grid_t* g,
                 const float qdt_2mc,
                 const float cdt_dx,
@@ -189,6 +188,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     interpolator_t* device_f0;
     accumulator_t* device_a0;
     particle_mover_t* device_pmovers;
+    particle_mover_t* device_pm;
     int64_t* device_neighbours;
     int* device_moved;
     int* device_moved_2;
@@ -201,6 +201,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
 
     CUDA_CHECK(
         cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
+    CUDA_CHECK(cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * n));
     CUDA_CHECK(cudaMalloc((void**)&device_neighbours,
                           sizeof(int64_t) * grid_size * 6));
     CUDA_CHECK(cudaMalloc((void**)&device_moved, sizeof(int)));
@@ -240,6 +241,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     CUDA_CHECK(cudaFree(device_f0));
     CUDA_CHECK(cudaFree(device_a0));
     CUDA_CHECK(cudaFree(device_pmovers));
+    CUDA_CHECK(cudaFree(device_pm));
     CUDA_CHECK(cudaFree(device_neighbours));
     CUDA_CHECK(cudaFree(device_moved));
     CUDA_CHECK(cudaFree(device_moved_2));

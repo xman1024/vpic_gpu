@@ -41,6 +41,7 @@ void center_p_pipeline_scalar(center_p_pipeline_args_t* args,
                           cudaMemcpyHostToDevice));
 
     center_p_pipeline_cuda(p, n, f0, qdt_2mc, qdt_4mc);
+    CUDA_CHECK(cudaFree(f0));
 }
 
 //----------------------------------------------------------------------------//

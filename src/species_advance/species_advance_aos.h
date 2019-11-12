@@ -68,7 +68,6 @@ typedef struct species {
     // Tutaj chyba są przenoszone cząsteczki w advance_p
     int nm, max_nm;                     // Number and max local movers in use
     particle_mover_t* ALIGNED(128) pm;  // Particle movers
-    particle_mover_t* device_pm;
 
     int64_t last_sorted;          // Step when the particles were last
                                   // sorted.

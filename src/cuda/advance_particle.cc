@@ -15,7 +15,6 @@ void run_kernel(particle_t* device_p0,
                 const interpolator_t* f0,
                 accumulator_t* a0,
                 particle_mover_t* pm,
-                particle_mover_t* device_pm,
                 const grid_t* g,
                 const float qdt_2mc,
                 const float cdt_dx,
@@ -42,8 +41,8 @@ void advance_p_cuda(species_t* RESTRICT sp,
 
     int n_ignored = 0;
 
-    run_kernel(device_p0, sp->np, f0, a0, sp->pm, sp->device_pm, g, qdt_2mc,
-               cdt_dx, cdt_dy, cdt_dz, qsp, sp->max_nm, &sp->nm, &n_ignored);
+    run_kernel(device_p0, sp->np, f0, a0, sp->pm, g, qdt_2mc, cdt_dx, cdt_dy,
+               cdt_dz, qsp, sp->max_nm, &sp->nm, &n_ignored);
 
     if (n_ignored) {
         WARNING(("Pipeline %i ran out of storage for %i movers", 0, n_ignored));
