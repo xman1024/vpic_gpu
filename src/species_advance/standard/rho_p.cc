@@ -38,15 +38,12 @@ void accumulate_rho_p(/**/ field_array_t* RESTRICT fa,
     const int sz     = sp->g->sz;
 
     int f_size = compute_f0_size(p, np);
+    int orig_f_size = f_size;
 #define MAXIMIZE(a, b) a = a > b ? a : b
-    MAXIMIZE(f_size, f_size);
-    MAXIMIZE(f_size, f_size + 1);
-    MAXIMIZE(f_size, f_size + sy);
-    MAXIMIZE(f_size, f_size + sy + 1);
-    MAXIMIZE(f_size, f_size + sz);
-    MAXIMIZE(f_size, f_size + sz + 1);
-    MAXIMIZE(f_size, f_size + sz + sy);
-    MAXIMIZE(f_size, f_size + sz + sy + 1);
+    MAXIMIZE(f_size, orig_f_size + 1);
+    MAXIMIZE(f_size, orig_f_size + sy + 1);
+    MAXIMIZE(f_size, orig_f_size + sz + 1);
+    MAXIMIZE(f_size, orig_f_size + sz + sy + 1);
 #undef MAXIMIZE
 
     field_t* f;
