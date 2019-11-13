@@ -11,10 +11,11 @@ void vpic_simulation::initialize(int argc, char** argv) {
     TOC(user_initialization, 1);
 
     LIST_FOR_EACH(sp, species_list) {
-        CUDA_CHECK(
-            cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
-        CUDA_CHECK(
-            cudaMemcpy(sp->device_p0, sp->host_p0, sizeof(particle_t) * sp->max_np, cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMalloc((void**)&sp->device_p0,
+                              sizeof(particle_t) * sp->max_np));
+        CUDA_CHECK(cudaMemcpy(sp->device_p0, sp->host_p0,
+                              sizeof(particle_t) * sp->max_np,
+                              cudaMemcpyHostToDevice));
         FREE_ALIGNED(sp->host_p0);
         sp->host_p0 = nullptr;
     }

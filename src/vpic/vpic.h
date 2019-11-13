@@ -601,13 +601,12 @@ class vpic_simulation {
         pm->dispy                     = dispy;
         pm->dispz                     = dispz;
         pm->i                         = sp->np - 1;
-
-        CUDA_CHECK(cudaMemcpy(sp->device_p0 + (sp->np++), &p,
-                              sizeof(particle_t), cudaMemcpyHostToDevice));
+        if (sp->host_p0 == nullptr)
+            exit(-1);
+        *(sp->host_p0 + (sp->np++)) = p;
         if (update_rhob)
             accumulate_rhob(field_array->f, &p, grid, -sp->q);
-        sp->nm +=
-            cuda_move_p(sp->device_p0, pm, accumulator_array->a, grid, sp->q);
+        sp->nm += move_p(sp->host_p0, pm, accumulator_array->a, grid, sp->q);
     }
 
     //////////////////////////////////
