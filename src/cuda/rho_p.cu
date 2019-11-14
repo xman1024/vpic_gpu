@@ -11,9 +11,12 @@ __global__ void rho_p_kernel(const particle_t* p,
                              field_t* f) {
     float w0, w1, w2, w3, w4, w5, w6, w7, dz;
 
-    int n, v;
+    int v;
+    
+    int n            = blockIdx.x * blockDim.x + threadIdx.x;
+    const int stride = blockDim.x * gridDim.x;
 
-    for (n = 0; n < np; n++) {
+    for (; n < np; n += stride) {
         // After detailed experiments and studying of assembly dumps, it was
         // determined that if the platform does not support efficient 4-vector
         // SIMD memory gather/scatter operations, the savings from using
@@ -54,14 +57,14 @@ __global__ void rho_p_kernel(const particle_t* p,
 
         // Reduce the particle charge to rhof
 
-        f[v].rhof += w0;
-        f[v + 1].rhof += w1;
-        f[v + sy].rhof += w2;
-        f[v + sy + 1].rhof += w3;
-        f[v + sz].rhof += w4;
-        f[v + sz + 1].rhof += w5;
-        f[v + sz + sy].rhof += w6;
-        f[v + sz + sy + 1].rhof += w7;
+        atomicAdd(&f[v].rhof, w0);
+        atomicAdd(&f[v + 1].rhof, w1);
+        atomicAdd(&f[v + sy].rhof, w2);
+        atomicAdd(&f[v + sy + 1].rhof, w3);
+        atomicAdd(&f[v + sz].rhof, w4);
+        atomicAdd(&f[v + sz + 1].rhof, w5);
+        atomicAdd(&f[v + sz + sy].rhof, w6);
+        atomicAdd(&f[v + sz + sy + 1].rhof, w7);
     }
 }
 
@@ -71,5 +74,5 @@ void rho_p_cuda(const particle_t* p,
                 const int sy,
                 const int sz,
                 field_t* f) {
-    rho_p_kernel<<<1, 1>>>(p, q_8V, np, sy, sz, f);
+    rho_p_kernel<<<1024, 1024>>>(p, q_8V, np, sy, sz, f);
 }
