@@ -21,11 +21,15 @@ int vpic_simulation::advance(void) {
     if (num_step > 0 && step() >= num_step)
         return 0;
 
+    if (rank() == 0)
+        printf("Step %d out of %d\n", step(), num_step);
+
     // Sort the particles for performance if desired.
 
     // Sortowanie można łatwo zrobić na gpu
     LIST_FOR_EACH(sp, species_list)
-    if ((sp->sort_interval > 0) && ((step() % sp->sort_interval) == 0)) {
+    if ((sp->sort_interval > 0) && ((step() % sp->sort_interval) == 0) &&
+        false) {
         if (rank() == 0)
             MESSAGE(("Performance sorting \"%s\"", sp->name));
         TIC sort_p(sp);

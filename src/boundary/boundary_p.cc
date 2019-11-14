@@ -1,8 +1,9 @@
 #define IN_boundary
 #include <cuda_runtime.h>
 #include <algorithm>
-
+#include <vector>
 #include "../cuda/utils.h"
+#include "../cuda/particles_utils.h"
 #include "boundary_private.h"
 // If this is defined particle and mover buffers will not resize dynamically
 // (This is the common case for the users)
@@ -182,6 +183,10 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             };
             std::sort(sp->pm, sp->pm + sp->nm, cmp);
 
+            std::vector<particle_mover_t> movers(sp->pm, sp->pm + sp->nm);
+
+            std::vector<particle_t> particles = get_particles_from_device(p0, np, movers);
+            
             particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
             nm                                        = sp->nm;
 
@@ -197,13 +202,16 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             // n=1...nm-1.  advance_p and inject_particle create movers with
             // property if all aged particle injection occurs after
             // advance_p and before this
-
+            int cnt = 0;
             for (; nm; pm--, nm--) {
                 i     = pm->i;
-                voxel = device_fetch_var(&(p0[i].i));
+                //particle_t p = device_fetch_var(&(p0[i]));
+                particle_t p = particles[cnt++];
+                voxel = p.i;
                 face  = voxel & 7;
                 voxel >>= 3;
-                device_set_var(&(p0[i].i), voxel);
+                //device_set_var(&(p0[i].i), voxel);
+                p.i = voxel;
                 nn = neighbor[6 * voxel + face];
 
                 // Absorb
@@ -212,7 +220,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 if (nn == absorb_particles) {
                     // Ideally, we would batch all rhob accumulations together
                     // for efficiency
-                    particle_t p = device_fetch_var(p0 + i);
+                    //particle_t p = device_fetch_var(p0 + i);
                     accumulate_rhob(f, &p, g, sp_q);
                     goto backfill;
                 }
@@ -223,7 +231,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                     ((nn > rangeh) & (nn <= rangem))) {
                     pi = &pi_send[face][n_send[face]++];
                     // TODO tu musi byc z karty wyciagane
-                    particle_t p = device_fetch_var(p0 + i);
+                    //particle_t p = device_fetch_var(p0 + i);
 #ifdef V4_ACCELERATION
                     copy_4x1(&pi->dx, &p.dx);
                     copy_4x1(&pi->ux, &p.ux);
@@ -266,7 +274,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 
                 nn = -nn - 3;  // Assumes reflective/absorbing are -1, -2
                 if ((nn >= 0) & (nn < nb)) {
-                    particle_t p = device_fetch_var(p0 + i);
+                    //particle_t p = device_fetch_var(p0 + i);
                     n_ci += pbc_interact[nn](pbc_params[nn], sp, &p, pm,
                                              ci + n_ci, 1, face);
                     goto backfill;
@@ -282,8 +290,8 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             backfill:
 
                 np--;
-                CUDA_CHECK(cudaMemcpy(p0 + i, p0 + np, sizeof(particle_t),
-                                      cudaMemcpyDeviceToDevice));
+                //CUDA_CHECK(cudaMemcpy(p0 + i, p0 + np, sizeof(particle_t),
+                //                      cudaMemcpyDeviceToDevice));
             }
 
             sp->np = np;
