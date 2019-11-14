@@ -537,14 +537,15 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 #endif
 #ifdef V4_ACCELERATION
                 copy_4x1(&pm[nm].dispx, &pi->dispx);
-                pm[nm].i = np + sp_orig_np[id];
+                pm[nm].i = np;
 #else
                 pm[nm].dispx = pi->dispx;
                 pm[nm].dispy = pi->dispy;
                 pm[nm].dispz = pi->dispz;
-                pm[nm].i = np + sp_orig_np[id];
+                pm[nm].i = np;
 #endif
                 sp_nm[id] = nm + move_p(p, pm + nm, a0, g, sp_q[id]);
+                pm[nm].i += sp_orig_np[id];
             }
         } while (face != 5);
 
