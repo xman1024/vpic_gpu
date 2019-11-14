@@ -3,7 +3,7 @@
 #include "center_p.h"
 #include "utils.h"
 
-__global__ void center_p_kernel(particle_t* p,
+__global__ void center_p_kernel(particle_t* p0,
                                 int n,
                                 interpolator_t* f0,
                                 const float qdt_2mc,
@@ -20,12 +20,16 @@ __global__ void center_p_kernel(particle_t* p,
     const float two_fifteenths = 2.0 / 15.0;
 
     // Process particles for this pipeline.
+    int i            = blockIdx.x * blockDim.x + threadIdx.x;
+    const int stride = blockDim.x * gridDim.x;
+    // Process particles for this pipeline.
 
-    for (; n; n--, p++) {
-        dx = p->dx;  // Load position
-        dy = p->dy;
-        dz = p->dz;
-        ii = p->i;
+    for (; i < n; i += stride) {
+        particle_t* p = p0 + i;
+        dx            = p->dx;  // Load position
+        dy            = p->dy;
+        dz            = p->dz;
+        ii            = p->i;
 
         f = f0 + ii;  // Interpolate E
 
@@ -77,5 +81,5 @@ void center_p_pipeline_cuda(particle_t* p,
                             interpolator_t* f0,
                             const float qdt_2mc,
                             const float qdt_4mc) {
-    center_p_kernel<<<1, 1>>>(p, n, f0, qdt_2mc, qdt_4mc);
+    center_p_kernel<<<1024, 1024>>>(p, n, f0, qdt_2mc, qdt_4mc);
 }
