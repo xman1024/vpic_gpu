@@ -442,6 +442,8 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
         float sp_q[MAX_SP];
         int sp_np[MAX_SP];
         int sp_nm[MAX_SP];
+        // save original np
+        int sp_orig_np[MAX_SP];
 
 #ifdef DISABLE_DYNAMIC_RESIZING
         int sp_max_np[64], n_dropped_particles[64];
@@ -456,6 +458,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             sp_pm[sp->id] = sp->pm;
             sp_q[sp->id]  = sp->q;
             sp_np[sp->id] = 0;
+            sp_orig_np[sp->id] = sp->np;
             sp_nm[sp->id] = sp->nm;
 #ifdef DISABLE_DYNAMIC_RESIZING
             sp_max_np[sp->id]           = sp->max_np;
@@ -534,12 +537,12 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 #endif
 #ifdef V4_ACCELERATION
                 copy_4x1(&pm[nm].dispx, &pi->dispx);
-                pm[nm].i = np;
+                pm[nm].i = np + sp_orig_np[id];
 #else
                 pm[nm].dispx = pi->dispx;
                 pm[nm].dispy = pi->dispy;
                 pm[nm].dispz = pi->dispz;
-                pm[nm].i = np;
+                pm[nm].i = np + sp_orig_np[id];
 #endif
                 sp_nm[id] = nm + move_p(p, pm + nm, a0, g, sp_q[id]);
             }
