@@ -30,6 +30,7 @@ __global__ void particle_move_kernel(particle_t* p0,
     const int stride = blockDim.x * gridDim.x;
 
     for (; i < n; i += stride) {
+        pmovers[i].i  = -1;
         particle_t* p = p0 + i;
         dx            = p->dx;  // Load position
         dy            = p->dy;
@@ -154,12 +155,11 @@ __global__ void particle_move_kernel(particle_t* p0,
 
         else  // Unlikely
         {
-            local_pm.dispx    = ux;
-            local_pm.dispy    = uy;
-            local_pm.dispz    = uz;
-            local_pm.i        = p - p0;
-            int save_idx      = atomicAdd(moved, 1);
-            pmovers[save_idx] = local_pm;
+            local_pm.dispx = ux;
+            local_pm.dispy = uy;
+            local_pm.dispz = uz;
+            local_pm.i     = p - p0;
+            pmovers[i]     = local_pm;
         }
     }
 }
@@ -185,26 +185,34 @@ void run_kernel(particle_t* device_p0,  // wielkość n
 
     int moved = 0;
 
-    interpolator_t* device_f0;
-    accumulator_t* device_a0;
-    particle_mover_t* device_pmovers;
-    particle_mover_t* device_pm;
-    static int64_t* device_neighbours = nullptr;
-    int* device_moved;
-    int* device_moved_2;
+    static interpolator_t* device_f0        = nullptr;
+    static accumulator_t* device_a0         = nullptr;
+    static particle_mover_t* device_pmovers = nullptr;
+    static particle_mover_t* device_pm      = nullptr;
+    static int64_t* device_neighbours       = nullptr;
+    static int* device_moved                = nullptr;
+    static int* device_moved_2              = nullptr;
 
     // Alokacja
-    CUDA_CHECK(cudaMalloc((void**)&device_f0,
-                          sizeof(interpolator_t) * interpolator_size));
-    CUDA_CHECK(cudaMalloc((void**)&device_a0,
-                          sizeof(accumulator_t) * accumulator_size));
+    if (device_f0 == nullptr)
+        CUDA_CHECK(cudaMalloc((void**)&device_f0,
+                              sizeof(interpolator_t) * interpolator_size));
 
-    CUDA_CHECK(
-        cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
-    CUDA_CHECK(cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * n));
+    if (device_a0 == nullptr)
+        CUDA_CHECK(cudaMalloc((void**)&device_a0,
+                              sizeof(accumulator_t) * accumulator_size));
 
-    CUDA_CHECK(cudaMalloc((void**)&device_moved, sizeof(int)));
-    CUDA_CHECK(cudaMalloc((void**)&device_moved_2, sizeof(int)));
+    if (device_pmovers == nullptr)
+        CUDA_CHECK(
+            cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
+    if (device_pm == nullptr)
+        CUDA_CHECK(
+            cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * n));
+
+    if (device_moved == nullptr)
+        CUDA_CHECK(cudaMalloc((void**)&device_moved, sizeof(int)));
+    if (device_moved_2 == nullptr)
+        CUDA_CHECK(cudaMalloc((void**)&device_moved_2, sizeof(int)));
 
     if (device_neighbours == nullptr) {
         CUDA_CHECK(cudaMalloc((void**)&device_neighbours,
@@ -233,8 +241,8 @@ void run_kernel(particle_t* device_p0,  // wielkość n
 
     moved = device_fetch_var(device_moved);
 
-    cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours,
-                qsp, device_moved_2, device_pm, g->rangeh, g->rangel);
+    cuda_move_p(device_p0, device_pmovers, n, device_a0, device_neighbours, qsp,
+                device_moved_2, device_pm, g->rangeh, g->rangel);
     // kopiowanie z powrotem
     CUDA_CHECK(cudaMemcpy(a0, device_a0,
                           sizeof(accumulator_t) * accumulator_size,
@@ -244,10 +252,10 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     CUDA_CHECK(cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm),
                           cudaMemcpyDeviceToHost));
     // Free
-    CUDA_CHECK(cudaFree(device_f0));
-    CUDA_CHECK(cudaFree(device_a0));
-    CUDA_CHECK(cudaFree(device_pmovers));
-    CUDA_CHECK(cudaFree(device_pm));
-    CUDA_CHECK(cudaFree(device_moved));
-    CUDA_CHECK(cudaFree(device_moved_2));
+    // CUDA_CHECK(cudaFree(device_f0));
+    // CUDA_CHECK(cudaFree(device_a0));
+    // CUDA_CHECK(cudaFree(device_pmovers));
+    // CUDA_CHECK(cudaFree(device_pm));
+    // CUDA_CHECK(cudaFree(device_moved));
+    // CUDA_CHECK(cudaFree(device_moved_2));
 }
