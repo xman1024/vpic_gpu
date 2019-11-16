@@ -445,7 +445,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
     do {
         // Unpack the species list for random acesss
 
-        particle_t* RESTRICT ALIGNED(32) sp_p[MAX_SP];
+        particle_t* sp_p[MAX_SP];
         particle_mover_t* RESTRICT ALIGNED(32) sp_pm[MAX_SP];
         float sp_q[MAX_SP];
         int sp_np[MAX_SP];

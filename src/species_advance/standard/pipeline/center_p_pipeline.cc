@@ -1,8 +1,8 @@
 #define IN_spa
 
-#define HAS_V4_PIPELINE
-#define HAS_V8_PIPELINE
-#define HAS_V16_PIPELINE
+//#define HAS_V4_PIPELINE
+//#define HAS_V8_PIPELINE
+//#define HAS_V16_PIPELINE
 
 #include <cuda_runtime.h>
 
