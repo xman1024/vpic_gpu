@@ -385,16 +385,33 @@ void util_free(void* mem_ref);
                         "(" EXPAND_AND_STRINGIFY(__LINE__) ") failed",    \
                         &(x), (n) * sizeof(*(x)), (a))
 
+#define MALLOC_PINNED_ALIGNED(x, n, a)                                        \
+    util_pinned_malloc_aligned("MALLOC_PINNED_ALIGNED( " #x ", " #n           \
+                               " (%lu bytes), " #a                            \
+                               " (%lu bytes) ) at " __FILE__                  \
+                               "(" EXPAND_AND_STRINGIFY(__LINE__) ") failed", \
+                               &(x), (n) * sizeof(*(x)), (a))
+
 void util_malloc_aligned(const char* err_fmt,  // Has exactly two %lu in it
                          void* mem_ref,
                          size_t n,
                          size_t a);
 
+void util_pinned_malloc_aligned(
+    const char* err_fmt,  // Has exactly two %lu in it
+    void* mem_ref,
+    size_t n,
+    size_t a);
+
 // FREE_ALIGNED behaves equivalently to FREE.
 
 #define FREE_ALIGNED(x) util_free_aligned(&(x))
 
+#define FREE_PINNED_ALIGNED(x) util_pinned_free_aligned(&(x))
+
 void util_free_aligned(void* mem_ref);
+
+void util_pinned_free_aligned(void* mem_ref);
 
 void log_printf(const char* fmt, ...);
 

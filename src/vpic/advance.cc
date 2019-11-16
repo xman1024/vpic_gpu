@@ -112,6 +112,7 @@ int vpic_simulation::advance(void) {
         int nm                                    = sp->nm;
         particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
         particle_t* p0                            = sp->device_p0;
+
         for (; nm; nm--, pm--) {
             int i         = pm->i;  // particle index we are removing
             int32_t voxel = device_fetch_var(&p0[i].i);

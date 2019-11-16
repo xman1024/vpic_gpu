@@ -189,7 +189,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     accumulator_t* device_a0;
     particle_mover_t* device_pmovers;
     particle_mover_t* device_pm;
-    int64_t* device_neighbours;
+    static int64_t* device_neighbours = nullptr;
     int* device_moved;
     int* device_moved_2;
 
@@ -202,10 +202,17 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     CUDA_CHECK(
         cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
     CUDA_CHECK(cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * n));
-    CUDA_CHECK(cudaMalloc((void**)&device_neighbours,
-                          sizeof(int64_t) * grid_size * 6));
+
     CUDA_CHECK(cudaMalloc((void**)&device_moved, sizeof(int)));
     CUDA_CHECK(cudaMalloc((void**)&device_moved_2, sizeof(int)));
+
+    if (device_neighbours == nullptr) {
+        CUDA_CHECK(cudaMalloc((void**)&device_neighbours,
+                              sizeof(int64_t) * grid_size * 6));
+        CUDA_CHECK(cudaMemcpy(device_neighbours, g->neighbor,
+                              sizeof(int64_t) * grid_size * 6,
+                              cudaMemcpyHostToDevice));
+    }
 
     // Kopiowanie tam
     CUDA_CHECK(cudaMemcpy(device_f0, f0,
@@ -214,9 +221,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     CUDA_CHECK(cudaMemcpy(device_a0, a0,
                           sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(device_neighbours, g->neighbor,
-                          sizeof(int64_t) * grid_size * 6,
-                          cudaMemcpyHostToDevice));
+
     device_set_var(device_moved, 0);
     device_set_var(device_moved_2, 0);
 
@@ -235,6 +240,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
                           sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));
     *nm = device_fetch_var(device_moved_2);
+
     CUDA_CHECK(cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm),
                           cudaMemcpyDeviceToHost));
     // Free
@@ -242,7 +248,6 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     CUDA_CHECK(cudaFree(device_a0));
     CUDA_CHECK(cudaFree(device_pmovers));
     CUDA_CHECK(cudaFree(device_pm));
-    CUDA_CHECK(cudaFree(device_neighbours));
     CUDA_CHECK(cudaFree(device_moved));
     CUDA_CHECK(cudaFree(device_moved_2));
 }

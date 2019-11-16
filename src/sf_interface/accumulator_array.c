@@ -55,7 +55,7 @@ accumulator_array_t* new_accumulator_array(grid_t* g) {
     aa->n_pipeline = aa_n_pipeline();
     aa->stride     = POW2_CEIL(g->nv, 2);
     aa->g          = g;
-    MALLOC_ALIGNED(aa->a, (size_t)(aa->n_pipeline + 1) * (size_t)aa->stride,
+    MALLOC_PINNED_ALIGNED(aa->a, (size_t)(aa->n_pipeline + 1) * (size_t)aa->stride,
                    128);
     CLEAR(aa->a, (size_t)(aa->n_pipeline + 1) * (size_t)aa->stride);
     REGISTER_OBJECT(aa, checkpt_accumulator_array, restore_accumulator_array,
@@ -67,6 +67,6 @@ void delete_accumulator_array(accumulator_array_t* aa) {
     if (!aa)
         return;
     UNREGISTER_OBJECT(aa);
-    FREE_ALIGNED(aa->a);
+    FREE_PINNED_ALIGNED(aa->a);
     FREE(aa);
 }

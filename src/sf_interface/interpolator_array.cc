@@ -21,7 +21,7 @@ interpolator_array_t* new_interpolator_array(grid_t* g) {
     if (!g)
         ERROR(("NULL grid"));
     MALLOC(ia, 1);
-    MALLOC_ALIGNED(ia->i, g->nv, 128);
+    MALLOC_PINNED_ALIGNED(ia->i, g->nv, 128);
     CLEAR(ia->i, g->nv);
     ia->g = g;
     REGISTER_OBJECT(ia, checkpt_interpolator_array, restore_interpolator_array,
@@ -33,7 +33,7 @@ void delete_interpolator_array(interpolator_array_t* ia) {
     if (!ia)
         return;
     UNREGISTER_OBJECT(ia);
-    FREE_ALIGNED(ia->i);
+    FREE_PINNED_ALIGNED(ia->i);
     FREE(ia);
 }
 
