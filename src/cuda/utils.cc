@@ -10,7 +10,9 @@ void set_proper_device() {
     CUDA_CHECK(cudaGetDeviceCount(&n_of_devices));
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    int my_device = world_rank % n_of_devices;
+    int num_of_ranks;
+    MPI_Comm_size(MPI_COMM_WORLD, &num_of_ranks);
+    int my_device = world_rank * n_of_devices / num_of_ranks;
     CUDA_CHECK(cudaSetDevice(my_device));
 }
 
