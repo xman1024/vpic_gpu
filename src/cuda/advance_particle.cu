@@ -30,6 +30,7 @@ __global__ void particle_move_kernel(particle_t* p0,
     const int stride = blockDim.x * gridDim.x;
 
     for (; i < n; i += stride) {
+        pmovers[i].i = -1;
         particle_t* p = p0 + i;
         dx            = p->dx;  // Load position
         dy            = p->dy;
@@ -158,8 +159,7 @@ __global__ void particle_move_kernel(particle_t* p0,
             local_pm.dispy    = uy;
             local_pm.dispz    = uz;
             local_pm.i        = p - p0;
-            int save_idx      = atomicAdd(moved, 1);
-            pmovers[save_idx] = local_pm;
+            pmovers[i] = local_pm;
         }
     }
 }
@@ -233,7 +233,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
 
     moved = device_fetch_var(device_moved);
 
-    cuda_move_p(device_p0, device_pmovers, moved, device_a0, device_neighbours,
+    cuda_move_p(device_p0, device_pmovers, n, device_a0, device_neighbours,
                 qsp, device_moved_2, device_pm, g->rangeh, g->rangel);
     // kopiowanie z powrotem
     CUDA_CHECK(cudaMemcpy(a0, device_a0,
