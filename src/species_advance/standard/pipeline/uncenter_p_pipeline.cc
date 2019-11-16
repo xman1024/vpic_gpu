@@ -18,20 +18,15 @@
 //----------------------------------------------------------------------------//
 
 void uncenter_p_pipeline_scalar(center_p_pipeline_args_t* args,
-                                int pipeline_rank,
                                 int n_pipeline) {
     particle_t* ALIGNED(32) p;
 
     const float qdt_2mc = -args->qdt_2mc;        // For backward half advance
     const float qdt_4mc = -0.5 * args->qdt_2mc;  // For backward half rotate
 
-    int first, n;
+    int n = args->np;
 
-    // Determine which particles this pipeline processes.
-
-    DISTRIBUTE(args->np, 16, pipeline_rank, n_pipeline, first, n);
-
-    p = args->p0 + first;
+    p = args->p0;
 
     int f0_size = compute_f0_size(p, n);
 
@@ -65,7 +60,5 @@ void uncenter_p_pipeline(species_t* RESTRICT sp,
     args->qdt_2mc = (sp->q * sp->g->dt) / (2 * sp->m * sp->g->cvac);
     args->np      = sp->np;
 
-    EXEC_PIPELINES(uncenter_p, args, 0);
-
-    WAIT_PIPELINES();
+    uncenter_p_pipeline_scalar(args, 0);
 }
