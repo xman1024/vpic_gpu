@@ -1,7 +1,18 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#include "utils.h"
+#include <mpi.h>
 
 #include <iostream>
+
+void set_proper_device() {
+    int n_of_devices;
+    CUDA_CHECK(cudaGetDeviceCount(&n_of_devices));
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    int my_device = world_rank % n_of_devices;
+    CUDA_CHECK(cudaSetDevice(my_device));
+}
 
 void detect_cuda_init() {
     cudaError_t cuda_status = cudaFree(0);
@@ -26,4 +37,5 @@ void detect_cuda_init() {
                   << std::endl;
         exit(1);
     }
+    
 }

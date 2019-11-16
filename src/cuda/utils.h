@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+void set_proper_device();
+
 void detect_cuda_init();
 
 #define CUDA_CHECK(error)                                                    \
