@@ -26,10 +26,6 @@ void energy_p_pipeline_scalar(energy_p_pipeline_args_t* RESTRICT args,
     const float qdt_2mc = args->qdt_2mc;
     const float msp     = args->msp;
 
-    double* en;
-    CUDA_CHECK(cudaMalloc((void**)&en, sizeof(double)));
-    device_set_var(en, 0.0);
-
     int n0, n1;
 
     // Determine which particles this pipeline processes.
@@ -44,10 +40,9 @@ void energy_p_pipeline_scalar(energy_p_pipeline_args_t* RESTRICT args,
 
     // Process particles quads for this pipeline.
 
-    energy_p_pipeline_cuda(p + n0, n1, f, qdt_2mc, msp, en);
+    args->en[pipeline_rank] =
+        energy_p_pipeline_cuda(p + n0, n1, f, qdt_2mc, msp);
 
-    args->en[pipeline_rank] = device_fetch_var(en);
-    CUDA_CHECK(cudaFree(en));
     CUDA_CHECK(cudaFree(f));
 }
 

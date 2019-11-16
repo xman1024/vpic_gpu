@@ -8,14 +8,20 @@ __global__ void energy_p_kernel(const particle_t* p,
                                 interpolator_t* f,
                                 const float qdt_2mc,
                                 const float msp,
-                                double* en) {
+                                double* en_buffer) {
     const float one = 1.0;
 
     float dx, dy, dz;
     float v0, v1, v2;
+    __shared__ double res[1024];
+    double en        = 0;
+    int tid          = threadIdx.x;
+    int n            = blockIdx.x * blockDim.x + threadIdx.x;
+    const int stride = blockDim.x * gridDim.x;
+
     int i;
 
-    for (int n = 0; n < n0; n++) {
+    for (; n < n0; n += stride) {
         dx = p[n].dx;
         dy = p[n].dy;
         dz = p[n].dz;
@@ -34,15 +40,35 @@ __global__ void energy_p_kernel(const particle_t* p,
 
         v0 = (msp * p[n].w) * (v0 / (one + sqrtf(one + v0)));
 
-        *en += (double)v0;
+        en += (double)v0;
+    }
+    res[tid] = en;
+    __syncthreads();
+    if (tid == 0) {
+        en = 0;
+        for (int i = 0; i < 1024; ++i)
+            en += res[i];
+        en_buffer[blockIdx.x] = en;
     }
 }
 
-void energy_p_pipeline_cuda(const particle_t* p,
-                            int n,
-                            interpolator_t* f0,
-                            const float qdt_2mc,
-                            const float msp,
-                            double* en) {
-    energy_p_kernel<<<1, 1>>>(p, n, f0, qdt_2mc, msp, en);
+double energy_p_pipeline_cuda(const particle_t* p,
+                              int n,
+                              interpolator_t* f0,
+                              const float qdt_2mc,
+                              const float msp) {
+    double* en_buffer = nullptr;
+
+    CUDA_CHECK(cudaMalloc((void**)&en_buffer, sizeof(double) * 1024));
+    energy_p_kernel<<<1024, 1024>>>(p, n, f0, qdt_2mc, msp, en_buffer);
+    double host_buffer[1024];
+    CUDA_CHECK(cudaMemcpy(host_buffer, en_buffer, 1024 * sizeof(double),
+                          cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaFree(en_buffer));
+
+    double res = 0;
+    for (int i = 0; i < 1024; ++i)
+        res += host_buffer[i];
+
+    return res;
 }
