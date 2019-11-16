@@ -574,9 +574,10 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                      n_dropped_movers[sp->id], sp->name));
 #endif
             // tu jest dopisywanie nowych do listy
-            CUDA_CHECK(cudaMemcpy(sp->device_p0 + sp->np, sp_p[sp->id],
-                                  sp_np[sp->id] * sizeof(particle_t),
-                                  cudaMemcpyHostToDevice));
+            if(sp_np[sp->id] > 0)
+                CUDA_CHECK(cudaMemcpy(sp->device_p0 + sp->np, sp_p[sp->id],
+                                    sp_np[sp->id] * sizeof(particle_t),
+                                    cudaMemcpyHostToDevice));
             sp->np += sp_np[sp->id];
             sp->nm = sp_nm[sp->id];
         }
