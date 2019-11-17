@@ -24,5 +24,5 @@ void sort_p_pipeline(species_t* sp) {
     particle_t* p = sp->device_p0;
     int np = sp->np;
 
-    thrust::sort(p, p + np, particle_compare());
+    thrust::sort(thrust::device, p, p + np, particle_compare());
 }

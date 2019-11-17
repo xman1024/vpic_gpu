@@ -28,8 +28,7 @@ int vpic_simulation::advance(void) {
 
     // Sortowanie można łatwo zrobić na gpu
     LIST_FOR_EACH(sp, species_list)
-    if ((sp->sort_interval > 0) && ((step() % sp->sort_interval) == 0) &&
-        false) {
+    if ((sp->sort_interval > 0) && ((step() % sp->sort_interval) == 0)) {
         if (rank() == 0)
             MESSAGE(("Performance sorting \"%s\"", sp->name));
         TIC sort_p(sp);
