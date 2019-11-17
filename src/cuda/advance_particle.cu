@@ -204,13 +204,15 @@ void run_kernel(particle_t* device_p0,  // wielkość n
                               sizeof(accumulator_t) * accumulator_size));
 
     if (n > allocated_nm) {
+        allocated_nm = n;
+        if (allocated_nm > max_nm)
+            allocated_nm = max_nm;
         CUDA_CHECK(cudaFree(device_pmovers));
         CUDA_CHECK(
-            cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * n));
+            cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * allocated_nm));
         CUDA_CHECK(cudaFree(device_pm));
         CUDA_CHECK(
-            cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * n));
-        allocated_nm = n;
+            cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * allocated_nm));
     }
 
     if (device_moved == nullptr)
