@@ -205,8 +205,6 @@ void run_kernel(particle_t* device_p0,  // wielkość n
 
     if (n > allocated_nm) {
         allocated_nm = n;
-        if (allocated_nm > max_nm)
-            allocated_nm = max_nm;
         CUDA_CHECK(cudaFree(device_pmovers));
         CUDA_CHECK(
             cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * allocated_nm));
@@ -255,6 +253,11 @@ void run_kernel(particle_t* device_p0,  // wielkość n
                           sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));
     *nm = device_fetch_var(device_moved_2);
+    if (*nm > max_nm)
+    {
+        *skipped = *nm - max_nm;
+        *nm = max_nm;
+    }
 
     CUDA_CHECK(cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm),
                           cudaMemcpyDeviceToHost));
