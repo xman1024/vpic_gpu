@@ -8,6 +8,7 @@
  *
  */
 
+#include "../cuda/perf_measure.h"
 #include "vpic.h"
 
 #define FAK field_array->kernel
@@ -20,6 +21,8 @@ int vpic_simulation::advance(void) {
 
     if (num_step > 0 && step() >= num_step)
         return 0;
+
+    PERF_START(step);
 
     if (rank() == 0)
         printf("Step %d out of %d\n", step(), num_step);
@@ -271,5 +274,8 @@ int vpic_simulation::advance(void) {
     // will act properly for this edge case.
 
     // dump_energies("energy.txt", 1);
+    if (rank() == 0)
+        PERF_END(step);
+
     return 1;
 }
