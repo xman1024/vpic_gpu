@@ -5,7 +5,7 @@
 #include "../species_advance/species_advance.h"
 
 __global__ void get_particles_kernel(particle_t* p,
-                                     particle_mover_t* movers,
+                                     const particle_mover_t* movers,
                                      int n,
                                      int pm,
                                      particle_t* res) {
@@ -20,7 +20,7 @@ __global__ void get_particles_kernel(particle_t* p,
 std::vector<particle_t> get_particles_from_device(
     particle_t* p,
     int n,
-    std::vector<particle_mover_t> movers) {
+    const std::vector<particle_mover_t>& movers) {
     int pm = movers.size();
     if (pm == 0)
         return {};
@@ -39,7 +39,7 @@ std::vector<particle_t> get_particles_from_device(
 
     CUDA_CHECK(cudaFree(device_res));
     CUDA_CHECK(cudaFree(device_movers));
-    
+
     res = std::vector<particle_t>(res.rbegin(), res.rend());
 
     return res;

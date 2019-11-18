@@ -178,7 +178,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             particle_t* RESTRICT ALIGNED(128) p0 = sp->device_p0;
             int np                               = sp->np;
 
-            auto cmp = [] (particle_mover_t p1, particle_mover_t p2){
+            auto cmp = [] (const particle_mover_t& p1, const particle_mover_t& p2){
                 return p1.i < p2.i;
             };
             std::sort(sp->pm, sp->pm + sp->nm, cmp);
@@ -186,7 +186,7 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             std::vector<particle_mover_t> movers(sp->pm, sp->pm + sp->nm);
 
             std::vector<particle_t> particles = get_particles_from_device(p0, np, movers);
-            
+
             particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
             nm                                        = sp->nm;
 
