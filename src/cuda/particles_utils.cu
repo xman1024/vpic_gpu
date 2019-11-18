@@ -40,7 +40,5 @@ std::vector<particle_t> get_particles_from_device(
     CUDA_CHECK(cudaFree(device_res));
     CUDA_CHECK(cudaFree(device_movers));
 
-    res = std::vector<particle_t>(res.rbegin(), res.rend());
-
     return res;
 }
