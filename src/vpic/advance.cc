@@ -9,6 +9,8 @@
  */
 
 #include "../cuda/perf_measure.h"
+#include "../cuda/particles_utils.h"
+#include <algorithm>
 #include "vpic.h"
 
 #define FAK field_array->kernel
@@ -110,23 +112,26 @@ int vpic_simulation::advance(void) {
         // many cases can in fact go out of bounds of the voxel indexing space.
         // Removal is in reverse order for back filling. Particle charge is
         // accumulated to the mesh before removing the particle.
+        auto cmp = [](particle_mover_t p1, particle_mover_t p2) {
+            return p1.i < p2.i;
+        };
 
+        std::sort(sp->pm, sp->pm + sp->nm, cmp);
+        std::vector<particle_mover_t> movers(sp->pm, sp->pm + sp->nm);
         int nm                                    = sp->nm;
         particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
         particle_t* p0                            = sp->device_p0;
 
+        std::vector<particle_t> particles = get_particles_from_device(p0, sp->np, movers);
+        int cnt = 0;
         for (; nm; nm--, pm--) {
-            int i         = pm->i;  // particle index we are removing
-            int32_t voxel = device_fetch_var(&p0[i].i);
+            particle_t p = particles[cnt++];
+            int32_t voxel = p.i;
             voxel >>= 3;
-            device_set_var(&p0[i].i, voxel);
+            p.i = voxel;
             // accumulate the particle's charge to the mesh
-            particle_t p = device_fetch_var(p0 + i);
             accumulate_rhob(field_array->f, &p, sp->g, sp->q);
-            CUDA_CHECK(
-                cudaMemcpy(p0 + i, p0 + sp->np - 1, sizeof(particle_t),
-                           cudaMemcpyDeviceToDevice));  // put the last particle
-                                                        // into position i
+            
             sp->np--;  // decrement the number of particles
         }
         sp->nm = 0;
