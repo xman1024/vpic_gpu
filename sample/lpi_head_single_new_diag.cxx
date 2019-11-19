@@ -840,7 +840,7 @@ begin_initialization {
   double f_H              = 1-f_He;   // Ratio of number density of H  to total ion density 
 
   int load_particles = 1;         // Flag to turn off particle load for testing wave launch. 
-  double nppc        = 10;
+  double nppc        = 512;
 
 // Here _He is N3+
   double A_H                = 1;
@@ -916,7 +916,7 @@ begin_initialization {
   int fft_ex_interval     = poynting_interval ;       // Num steps between writing Ex in fft_slice
   int fft_ey_interval     = poynting_interval ;       // Num steps between writing Ey in fft_slice
   int fft_ez_interval     = poynting_interval ;       // Num steps between writing Ez in fft_slice
-  int field_interval       = int(0.01*wpe1ps/dt);         // Num. steps between saving field, hydro data
+  int field_interval       = int(0.1*wpe1ps/dt);         // Num. steps between saving field, hydro data
   int energies_interval = field_interval;
 // restart_interval has to be multiples of field_interval
   int restart_interval       = field_interval;
@@ -2500,8 +2500,8 @@ begin_diagnostics {
 	long ivx=long(vx/dvx_##SUFF+(NVX/2));                             \
 	long ivz=long(vz/dvz_##SUFF+(NVZ/2));                             \
 	if ( abs(ivx)<NVX && abs(ivz)<NVZ && PMASK ) f_##SUFF[ivx*NVZ+ivz]+=p.w;  \
-        FREE(host_p0); \
       }                                                                   \
+      FREE(host_p0); \
     }
 
 #define INCLUDE_VELOCITY_HEADER 0
@@ -2558,39 +2558,7 @@ begin_diagnostics {
 
     // NOTE: We don't write on time step 0, as per comment above. 
     if ( step()!=0 && (step()%global->velocity_interval)==0 ) {
-        {
-            species_t *sp;
-            for (int i=0; i<100; ++i)
-                for (int j=0; j<100; ++j)
-                    f_e[i*100 +j]=0;
-            sp = find_species_name("electron", species_list);
-            particle_t* host_p0;
-            MALLOC(host_p0, sp->np);
-            CUDA_CHECK(cudaMemcpy(
-                        host_p0,
-                        sp->device_p0,
-                        sizeof(particle_t) *  sp->np,
-                        cudaMemcpyDeviceToHost));
-            for (int ip=0; ip<sp->np; ip++)
-            {
-                particle_t p = host_p0[ip];
-                int nxp2=grid->nx+2;
-                int nyp2=grid->ny+2;
-                int iz = p.i/(nxp2*nyp2);
-                double pz = grid->z0+((iz-1)+(p.dz+1)*0.5)*grid->dz;
-                float invgamma=1/sqrt(1+p.ux*p.ux+p.uy*p.uy+p.uz*p.uz);
-                float vx=p.ux*grid->cvac*invgamma;
-                float vz=p.uz*grid->cvac*invgamma;
-                long ivx=long(vx/dvx_e+(100/2));
-                long ivz=long(vz/dvz_e+(100/2));
-                if ( abs(ivx)<100 &&
-                        abs(ivz)<100 &&
-                        ((pz-(0))*(pz-(0))<0.5*global->Lz*0.5*global->Lz) )
-                    f_e[ivx*100 +ivz]+=p.w;
-                util_free(&(host_p0));
-            }
-        };
-      // PREPARE_VELOCITY_SPACE_DATA(e, "electron"); 
+      PREPARE_VELOCITY_SPACE_DATA(e, "electron"); 
       PREPARE_VELOCITY_SPACE_DATA(He, "He");
       DUMP_VELOCITY_DATA(e,  NVX*NVZ, VELOCITY_HEADER_SIZE); 
       DUMP_VELOCITY_DATA(He, NVX*NVZ, VELOCITY_HEADER_SIZE); 
