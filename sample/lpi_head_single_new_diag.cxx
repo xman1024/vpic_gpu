@@ -1102,7 +1102,7 @@ begin_initialization {
   sim_log("Setting up species. ");
   
 
-  double max_local_np              = 1.1*Ne/nproc();
+  double max_local_np              = 1.2*Ne/nproc();
   double max_local_nm              = max_local_np / 10.0;
   sim_log( "num electron, ion macroparticles: "<<max_local_np );
   sim_log("- Creating electron species.");
@@ -2477,8 +2477,11 @@ begin_diagnostics {
         for (int j=0; j<NVZ; ++j)                                         \
 	  f_##SUFF[i*NVZ+j]=0;                                            \
       sp = find_species_name(NAME, species_list);                         \
+      particle_t* host_p0; \
+      MALLOC(host_p0, sp->np); \
+      CUDA_CHECK(cudaMemcpy(host_p0, sp->device_p0, sizeof(particle_t) * sp->np, cudaMemcpyDeviceToHost)); \
       for (int ip=0; ip<sp->np; ip++) {                                   \
-	particle_t p=device_fetch_var(sp->device_p0 + ip);               \
+	particle_t p = host_p0[ip];               \
         /* Lots of stuff commented because PMASK only has pz */           \
 	int nxp2=grid->nx+2;                                              \
 	int nyp2=grid->ny+2;                                              \
@@ -2497,6 +2500,7 @@ begin_diagnostics {
 	long ivx=long(vx/dvx_##SUFF+(NVX/2));                             \
 	long ivz=long(vz/dvz_##SUFF+(NVZ/2));                             \
 	if ( abs(ivx)<NVX && abs(ivz)<NVZ && PMASK ) f_##SUFF[ivx*NVZ+ivz]+=p.w;  \
+        FREE(host_p0); \
       }                                                                   \
     }
 
