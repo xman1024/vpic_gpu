@@ -32,7 +32,6 @@ void detect_cuda_init() {
         exit(1);
     }
 
-    cuda_status = cudaSetDevice(0);
     if (cuda_status != cudaSuccess) {
         std::cout
             << "cudaSetDevice(0) failed on DetectCudaInit with error code ("
