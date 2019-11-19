@@ -831,7 +831,7 @@ begin_initialization {
   double vacuum_wavelength = 527 * 1e-7;   // third micron light (cm)
   float  laser_intensity  = 2.5e15; // Units of W/cm^2
 
-  float box_size_x = 120 * 1e-4;   // Microns
+  float box_size_x = 20 * 1e-4;   // Microns
   float box_size_z = 12.0 *  1e-4;   // Microns (ignored if 1d or 2d in plane)
 
   int mobile_ions         = 1;        // Whether or not to push ions 
@@ -861,7 +861,7 @@ begin_initialization {
   double debye = uthe*delta;
   double wpe1ps=1e-12* speed_of_light/delta;
 
-  double nx                = 7776;
+  double nx                = 1296;
   double ny                = 1;   // 2D problem in x-z plane
   double nz                = 550;  // was 549;
 
@@ -919,7 +919,7 @@ begin_initialization {
   int field_interval       = int(0.1*wpe1ps/dt);         // Num. steps between saving field, hydro data
   int energies_interval = field_interval;
 // restart_interval has to be multiples of field_interval
-  int restart_interval       = 10*field_interval;
+  int restart_interval       = field_interval;
 //restart_interval     = 0;  //DEBUG      // Num. steps between restart dumps
 
   int quota_check_interval = 20;
