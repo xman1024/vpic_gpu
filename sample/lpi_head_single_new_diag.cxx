@@ -884,9 +884,9 @@ begin_initialization {
 
   double dt = cfl_req*courant_length(Lx, Ly, Lz, nx, ny, nz); 
 
-  double topology_x = 144; // 54 cells per MPI
+  double topology_x = 8; // 54 cells per MPI
   double topology_y = 1;
-  double topology_z = 10;
+  double topology_z = 2;
 
 // laser focusing parameters
   int  launch_laser = 1;        // Whether to launch pump laser
@@ -1102,7 +1102,7 @@ begin_initialization {
   sim_log("Setting up species. ");
   
 
-  double max_local_np              = 1.3*Ne/nproc();
+  double max_local_np              = 1.1*Ne/nproc();
   double max_local_nm              = max_local_np / 10.0;
   sim_log( "num electron, ion macroparticles: "<<max_local_np );
   sim_log("- Creating electron species.");
@@ -2478,25 +2478,25 @@ begin_diagnostics {
 	  f_##SUFF[i*NVZ+j]=0;                                            \
       sp = find_species_name(NAME, species_list);                         \
       for (int ip=0; ip<sp->np; ip++) {                                   \
-	particle_t *p=&sp->p[ip];                                         \
+	particle_t p=device_fetch_var(sp->device_p0 + ip);               \
         /* Lots of stuff commented because PMASK only has pz */           \
 	int nxp2=grid->nx+2;                                              \
 	int nyp2=grid->ny+2;                                              \
 	/* int nzp2=grid->nz+2;    */                                     \
 	/* Turn index i into separate ix, iy, iz indices */               \
-	int iz = p->i/(nxp2*nyp2);                                        \
-	/* int iy = (p->i-iz*nxp2*nyp2)/nxp2;  */                         \
-	/* int ix = p->i-nxp2*(iy+nyp2*iz); */                            \
+	int iz = p.i/(nxp2*nyp2);                                        \
+	/* int iy = (p.i-iz*nxp2*nyp2)/nxp2;  */                         \
+	/* int ix = p.i-nxp2*(iy+nyp2*iz); */                            \
 	/* Compute real particle position from relative coords and grid data */ \
-	/* double px = grid->x0+((ix-1)+(p->dx+1)*0.5)*grid->dx; */       \
-	/* double py = grid->y0+((iy-1)+(p->dy+1)*0.5)*grid->dy; */       \
-	double pz = grid->z0+((iz-1)+(p->dz+1)*0.5)*grid->dz;             \
-	float invgamma=1/sqrt(1+p->ux*p->ux+p->uy*p->uy+p->uz*p->uz);     \
-	float vx=p->ux*grid->cvac*invgamma;                               \
-	float vz=p->uz*grid->cvac*invgamma;                               \
+	/* double px = grid->x0+((ix-1)+(p.dx+1)*0.5)*grid->dx; */       \
+	/* double py = grid->y0+((iy-1)+(p.dy+1)*0.5)*grid->dy; */       \
+	double pz = grid->z0+((iz-1)+(p.dz+1)*0.5)*grid->dz;             \
+	float invgamma=1/sqrt(1+p.ux*p.ux+p.uy*p.uy+p.uz*p.uz);     \
+	float vx=p.ux*grid->cvac*invgamma;                               \
+	float vz=p.uz*grid->cvac*invgamma;                               \
 	long ivx=long(vx/dvx_##SUFF+(NVX/2));                             \
 	long ivz=long(vz/dvz_##SUFF+(NVZ/2));                             \
-	if ( abs(ivx)<NVX && abs(ivz)<NVZ && PMASK ) f_##SUFF[ivx*NVZ+ivz]+=p->w;  \
+	if ( abs(ivx)<NVX && abs(ivz)<NVZ && PMASK ) f_##SUFF[ivx*NVZ+ivz]+=p.w;  \
       }                                                                   \
     }
 
