@@ -27,6 +27,7 @@ void checkpt_species(const species_t* sp) {
                  sp->max_np * sizeof(particle_t), 1, 1, 128);
     checkpt_data(sp->pm, sp->nm * sizeof(particle_mover_t),
                  sp->max_nm * sizeof(particle_mover_t), 1, 1, 128);
+    FREE(p);
     CHECKPT_ALIGNED(sp->partition, sp->g->nv + 1, 128);
     CHECKPT_PTR(sp->g);
     CHECKPT_PTR(sp->next);

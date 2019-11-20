@@ -178,4 +178,5 @@ void accumulate_hydro_p(hydro_array_t* RESTRICT ha,
 
 #undef ACCUM_HYDRO
     }
+    FREE(p);
 }
