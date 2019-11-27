@@ -63,13 +63,12 @@ void checkpt(const char* fbase, int tag) {
  */
 int main(int argc, char** argv) {
     detect_cuda_init();
-    
 
     // Initialize underlying threads and services
     boot_services(&argc, &argv);
 
     set_proper_device();
-    
+
     // TODO: this would be better if it was bool-like in nature
     const char* fbase = strip_cmdline_string(&argc, &argv, "--restore", NULL);
 

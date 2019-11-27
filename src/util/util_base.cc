@@ -9,9 +9,11 @@
  */
 
 #include "util_base.h"  // Declarations
-#include <stdarg.h>     // For va_list, va_start, va_end
-#include <stdio.h>      // For vfprintf
-#include <string.h>     // for strstr
+
+#include <stdarg.h>  // For va_list, va_start, va_end
+#include <stdio.h>   // For vfprintf
+#include <string.h>  // for strstr
+
 #include "../cuda/utils.h"
 
 /****************************************************************************/

@@ -17,8 +17,7 @@
 // make use of explicit calls to vector intrinsic functions.
 //----------------------------------------------------------------------------//
 
-void center_p_pipeline_scalar(center_p_pipeline_args_t* args,
-                              int n_pipeline) {
+void center_p_pipeline_scalar(center_p_pipeline_args_t* args, int n_pipeline) {
     particle_t* ALIGNED(32) p;
 
     const float qdt_2mc = args->qdt_2mc;

@@ -12,7 +12,7 @@ __global__ void rho_p_kernel(const particle_t* p,
     float w0, w1, w2, w3, w4, w5, w6, w7, dz;
 
     int v;
-    
+
     int n            = blockIdx.x * blockDim.x + threadIdx.x;
     const int stride = blockDim.x * gridDim.x;
 

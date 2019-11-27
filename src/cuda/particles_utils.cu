@@ -1,8 +1,9 @@
 #include <vector>
+
+#include "../species_advance/species_advance.h"
+#include "../util/util_base.h"
 #include "particles_utils.h"
 #include "utils.h"
-#include "../util/util_base.h"
-#include "../species_advance/species_advance.h"
 
 __global__ void get_particles_kernel(particle_t* p,
                                      const particle_mover_t* movers,

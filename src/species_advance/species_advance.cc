@@ -39,7 +39,8 @@ species_t* restore_species(void) {
     RESTORE_STR(sp->name);
     particle_t* p;
     p = (particle_t*)restore_data();
-    CUDA_CHECK(cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
+    CUDA_CHECK(
+        cudaMalloc((void**)&sp->device_p0, sizeof(particle_t) * sp->max_np));
     CUDA_CHECK(cudaMemcpy(sp->device_p0, p, sizeof(particle_t) * sp->np,
                           cudaMemcpyHostToDevice));
     sp->pm = (particle_mover_t*)restore_data();

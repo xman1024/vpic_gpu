@@ -164,10 +164,10 @@ __global__ void particle_move_kernel(particle_t* p0,
     }
 }
 
-void run_kernel(particle_t* device_p0,  // wielkość n
+void run_kernel(particle_t* device_p0,  // size n
                 int n,
-                const interpolator_t* f0,  // wielkość accumulator_size
-                accumulator_t* a0,         // wielkość interpolator_size
+                const interpolator_t* f0,  // size accumulator_size
+                accumulator_t* a0,         // size interpolator_size
                 particle_mover_t* pm,
                 const grid_t* g,
                 const float qdt_2mc,
@@ -178,7 +178,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
                 const int max_nm,
                 int* nm,
                 int* skipped) {
-    // Rozmiary kopiowanych tablic
+    // Sizes of copied arrays
     const int grid_size         = (g->nx + 2) * (g->ny + 2) * (g->nz + 2);
     const int accumulator_size  = POW2_CEIL(grid_size, 2);
     const int interpolator_size = grid_size;
@@ -194,7 +194,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     static int* device_moved                = nullptr;
     static int* device_moved_2              = nullptr;
 
-    // Alokacja
+    // Allocate memory
     if (device_f0 == nullptr)
         CUDA_CHECK(cudaMalloc((void**)&device_f0,
                               sizeof(interpolator_t) * interpolator_size));
@@ -206,11 +206,11 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     if (n > allocated_nm) {
         allocated_nm = n;
         CUDA_CHECK(cudaFree(device_pmovers));
-        CUDA_CHECK(
-            cudaMalloc((void**)&device_pmovers, sizeof(particle_mover_t) * allocated_nm));
+        CUDA_CHECK(cudaMalloc((void**)&device_pmovers,
+                              sizeof(particle_mover_t) * allocated_nm));
         CUDA_CHECK(cudaFree(device_pm));
-        CUDA_CHECK(
-            cudaMalloc((void**)&device_pm, sizeof(particle_mover_t) * allocated_nm));
+        CUDA_CHECK(cudaMalloc((void**)&device_pm,
+                              sizeof(particle_mover_t) * allocated_nm));
     }
 
     if (device_moved == nullptr)
@@ -226,7 +226,7 @@ void run_kernel(particle_t* device_p0,  // wielkość n
                               cudaMemcpyHostToDevice));
     }
 
-    // Kopiowanie tam
+    // Copy to the device
     CUDA_CHECK(cudaMemcpy(device_f0, f0,
                           sizeof(interpolator_t) * interpolator_size,
                           cudaMemcpyHostToDevice));
@@ -237,8 +237,6 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     device_set_var(device_moved, 0);
     device_set_var(device_moved_2, 0);
 
-    // wywołanie kernela TODO liczba bloków powinna z grubsza odpowiadać liczbie
-    // SMów
     particle_move_kernel<<<1024, 1024>>>(device_p0, device_f0, device_pmovers,
                                          device_a0, n, device_moved, qdt_2mc,
                                          cdt_dx, cdt_dy, cdt_dz, qsp);
@@ -248,24 +246,16 @@ void run_kernel(particle_t* device_p0,  // wielkość n
     cuda_move_p(device_p0, device_pmovers, n, device_a0, device_neighbours, qsp,
                 device_moved_2, device_pm, g->rangeh, g->rangel);
     CUDA_CHECK(cudaDeviceSynchronize());
-    // kopiowanie z powrotem
+    // Copy back
     CUDA_CHECK(cudaMemcpy(a0, device_a0,
                           sizeof(accumulator_t) * accumulator_size,
                           cudaMemcpyDeviceToHost));
     *nm = device_fetch_var(device_moved_2);
-    if (*nm > max_nm)
-    {
+    if (*nm > max_nm) {
         *skipped = *nm - max_nm;
-        *nm = max_nm;
+        *nm      = max_nm;
     }
 
     CUDA_CHECK(cudaMemcpy(pm, device_pm, sizeof(particle_mover_t) * (*nm),
                           cudaMemcpyDeviceToHost));
-    // Free
-    // CUDA_CHECK(cudaFree(device_f0));
-    // CUDA_CHECK(cudaFree(device_a0));
-    // CUDA_CHECK(cudaFree(device_pmovers));
-    // CUDA_CHECK(cudaFree(device_pm));
-    // CUDA_CHECK(cudaFree(device_moved));
-    // CUDA_CHECK(cudaFree(device_moved_2));
 }

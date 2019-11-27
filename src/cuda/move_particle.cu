@@ -160,7 +160,7 @@ __global__ void cuda_move_p_kernel(particle_t* p0,
             // particle coordinate system and keep moving the particle.
 
             p->i = neighbor - rangel;  // Compute local index of neighbor
-            /**/                       // Note: neighbor - g->rangel < 2^31 / 6
+            /**/                         // Note: neighbor - g->rangel < 2^31 / 6
             (&(p->dx))[axis] = -v0;    // Convert coordinate system
         }
     }

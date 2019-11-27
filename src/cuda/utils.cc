@@ -1,6 +1,7 @@
+#include "utils.h"
+
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include "utils.h"
 #include <mpi.h>
 
 #include <iostream>
@@ -42,5 +43,4 @@ void detect_cuda_init() {
                   << std::endl;
         exit(1);
     }
-    
 }

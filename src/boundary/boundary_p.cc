@@ -1,9 +1,11 @@
 #define IN_boundary
 #include <cuda_runtime.h>
+
 #include <algorithm>
 #include <vector>
-#include "../cuda/utils.h"
+
 #include "../cuda/particles_utils.h"
+#include "../cuda/utils.h"
 #include "boundary_private.h"
 // If this is defined particle and mover buffers will not resize dynamically
 // (This is the common case for the users)
@@ -169,8 +171,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
         n_ci = 0;
 
         // For each species, load the movers
-        // UWAGA TODO zrobić mądrzejsze wyjmowanie cząstek z pamięci karty
-        // (jednym transferem jakoś)
         LIST_FOR_EACH(sp, sp_list) {
             const float sp_q    = sp->q;
             const int32_t sp_id = sp->id;
@@ -178,14 +178,14 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             particle_t* RESTRICT ALIGNED(128) p0 = sp->device_p0;
             int np                               = sp->np;
 
-            auto cmp = [] (const particle_mover_t& p1, const particle_mover_t& p2){
-                return p1.i < p2.i;
-            };
+            auto cmp = [](const particle_mover_t& p1,
+                          const particle_mover_t& p2) { return p1.i < p2.i; };
             std::sort(sp->pm, sp->pm + sp->nm, cmp);
 
             std::vector<particle_mover_t> movers(sp->pm, sp->pm + sp->nm);
 
-            std::vector<particle_t> particles = get_particles_from_device(p0, np, movers);
+            std::vector<particle_t> particles =
+                get_particles_from_device(p0, np, movers);
 
             particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
             nm                                        = sp->nm;
@@ -204,23 +204,19 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             // advance_p and before this
             int cnt = 0;
             for (; nm; pm--, nm--) {
-                i     = pm->i;
-                //particle_t p = device_fetch_var(&(p0[i]));
+                i            = pm->i;
                 particle_t p = particles[cnt++];
-                voxel = p.i;
-                face  = voxel & 7;
+                voxel        = p.i;
+                face         = voxel & 7;
                 voxel >>= 3;
-                //device_set_var(&(p0[i].i), voxel);
                 p.i = voxel;
-                nn = neighbor[6 * voxel + face];
+                nn  = neighbor[6 * voxel + face];
 
                 // Absorb
 
-                // TODO tu jest przekazywane i to moze byc niedobrze?
                 if (nn == absorb_particles) {
                     // Ideally, we would batch all rhob accumulations together
                     // for efficiency
-                    //particle_t p = device_fetch_var(p0 + i);
                     accumulate_rhob(f, &p, g, sp_q);
                     goto backfill;
                 }
@@ -230,8 +226,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 if (((nn >= 0) & (nn < rangel)) |
                     ((nn > rangeh) & (nn <= rangem))) {
                     pi = &pi_send[face][n_send[face]++];
-                    // TODO tu musi byc z karty wyciagane
-                    //particle_t p = device_fetch_var(p0 + i);
 #ifdef V4_ACCELERATION
                     copy_4x1(&pi->dx, &p.dx);
                     copy_4x1(&pi->ux, &p.ux);
@@ -274,7 +268,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
 
                 nn = -nn - 3;  // Assumes reflective/absorbing are -1, -2
                 if ((nn >= 0) & (nn < nb)) {
-                    //particle_t p = device_fetch_var(p0 + i);
                     n_ci += pbc_interact[nn](pbc_params[nn], sp, &p, pm,
                                              ci + n_ci, 1, face);
                     goto backfill;
@@ -290,8 +283,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
             backfill:
 
                 np--;
-                //CUDA_CHECK(cudaMemcpy(p0 + i, p0 + np, sizeof(particle_t),
-                //                      cudaMemcpyDeviceToDevice));
             }
 
             sp->np = np;
@@ -377,15 +368,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 CUDA_CHECK(cudaFree(sp->device_p0));
                 sp->device_p0 = new_device_p0;
                 sp->max_np    = n;
-
-                /*nm = sp->max_nm * resize_ratio;
-                WARNING(( "Resizing local %s mover storage from %i to %i",
-                          sp->name, sp->max_nm, nm ));
-                MALLOC_ALIGNED( new_pm, nm, 128 );
-                COPY( new_pm, sp->pm, sp->nm );
-                FREE_ALIGNED( sp->pm );
-                sp->pm = new_pm;
-                sp->max_nm = nm;*/
             } else if (sp->max_np > MIN_NP && n<sp->max_np>> 1) {
                 n += 0.125 *
                      n;  // Overallocate by less since this rank is decreasing
@@ -404,14 +386,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 CUDA_CHECK(cudaFree(sp->device_p0));
                 sp->device_p0 = new_device_p0;
                 sp->max_np    = n;
-
-                /*nm = sp->max_nm * resize_ratio;
-                WARNING(( "Resizing (shrinking) local %s mover storage from "
-                            "%i to %i", sp->name, sp->max_nm, nm));
-                MALLOC_ALIGNED( new_pm, nm, 128 );
-                COPY( new_pm, sp->pm, sp->nm );
-                FREE_ALIGNED( sp->pm );
-                sp->pm = new_pm, sp->max_nm = nm;*/
             }
 
             // Feasibly, a vacuum-filled rank may receive a shock and need more
@@ -429,14 +403,6 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                 FREE_ALIGNED(sp->pm);
                 sp->pm     = new_pm;
                 sp->max_nm = nm;
-
-                /*n = sp->max_np * resize_ratio;
-                WARNING(( "Resizing local %s particle storage from %i to %i",
-                          sp->name, sp->max_np, n ));
-                MALLOC_ALIGNED( new_p, n, 128 );
-                COPY( new_p, sp->p, sp->np );
-                FREE_ALIGNED( sp->p );
-                sp->p = new_p, sp->max_np = n;*/
             }
         }
     } while (0);
@@ -461,13 +427,12 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
         if (num_species(sp_list) > MAX_SP)
             ERROR(("Update this to support more species"));
         LIST_FOR_EACH(sp, sp_list) {
-            // robimy pusta tablice
             MALLOC(sp_p[sp->id], max_inj);
-            sp_pm[sp->id] = sp->pm;
-            sp_q[sp->id]  = sp->q;
-            sp_np[sp->id] = 0;
+            sp_pm[sp->id]      = sp->pm;
+            sp_q[sp->id]       = sp->q;
+            sp_np[sp->id]      = 0;
             sp_orig_np[sp->id] = sp->np;
-            sp_nm[sp->id] = sp->nm;
+            sp_nm[sp->id]      = sp->nm;
 #ifdef DISABLE_DYNAMIC_RESIZING
             sp_max_np[sp->id]           = sp->max_np;
             n_dropped_particles[sp->id] = 0;
@@ -573,11 +538,10 @@ void boundary_p(particle_bc_t* RESTRICT pbc_list,
                      "for this species on this node.",
                      n_dropped_movers[sp->id], sp->name));
 #endif
-            // tu jest dopisywanie nowych do listy
-            if(sp_np[sp->id] > 0)
+            if (sp_np[sp->id] > 0)
                 CUDA_CHECK(cudaMemcpy(sp->device_p0 + sp->np, sp_p[sp->id],
-                                    sp_np[sp->id] * sizeof(particle_t),
-                                    cudaMemcpyHostToDevice));
+                                      sp_np[sp->id] * sizeof(particle_t),
+                                      cudaMemcpyHostToDevice));
             sp->np += sp_np[sp->id];
             sp->nm = sp_nm[sp->id];
         }

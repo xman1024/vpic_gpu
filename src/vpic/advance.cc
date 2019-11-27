@@ -8,9 +8,10 @@
  *
  */
 
-#include "../cuda/perf_measure.h"
-#include "../cuda/particles_utils.h"
 #include <algorithm>
+
+#include "../cuda/particles_utils.h"
+#include "../cuda/perf_measure.h"
 #include "vpic.h"
 
 #define FAK field_array->kernel
@@ -31,9 +32,9 @@ int vpic_simulation::advance(void) {
 
     // Sort the particles for performance if desired.
 
-    // Sortowanie można łatwo zrobić na gpu
     LIST_FOR_EACH(sp, species_list)
-    if ((sp->sort_interval > 0) && ((step() % sp->sort_interval) == 0) && false) {
+    if ((sp->sort_interval > 0) && ((step() % sp->sort_interval) == 0) &&
+        false) {
         if (rank() == 0)
             MESSAGE(("Performance sorting \"%s\"", sp->name));
         TIC sort_p(sp);
@@ -45,7 +46,6 @@ int vpic_simulation::advance(void) {
     // should empty and all particles should be inside the local computational
     // domain. Advance the particle lists.
 
-    // tutaj nic się nie dzieje z cząstkami
     if (species_list)
         TIC clear_accumulator_array(accumulator_array);
     TOC(clear_accumulators, 1);
@@ -56,8 +56,6 @@ int vpic_simulation::advance(void) {
     // yields a first order accurate Trotter factorization (not a second
     // order accurate factorization).
 
-    // tutaj wiadomo; TODO sprawdzić ile jest tych rzeczy na species_list, bo
-    // może da się to zrobić w miarę równolegle ze streamami
     LIST_FOR_EACH(sp, species_list)
     TIC advance_p(sp, accumulator_array, interpolator_array);
     TOC(advance_p, 1);
@@ -68,7 +66,6 @@ int vpic_simulation::advance(void) {
     // be done after advance_p and before guard list processing. Note:
     // user_particle_injection should be a stub if species_list is empty.
 
-    // KURWA MAĆ nie iwadomo co tu się może stać
     if (emitter_list)
         TIC apply_emitter_list(emitter_list);
     TOC(emission_model, 1);
@@ -78,27 +75,18 @@ int vpic_simulation::advance(void) {
     // This should be after the emission and injection to allow for the
     // possibility of thread parallelizing these operations
 
-    // nie dotyka cząstek, ergo można zostawić tak jak jest
     if (species_list)
         TIC reduce_accumulator_array(accumulator_array);
     TOC(reduce_accumulators, 1);
 
-    // At this point, most particle positions are at r_1 and u_{1/2} (cokolwiek
-    // to kurwa znaczy). Particles that had boundary interactions are now on the
-    // guard list. Process the guard lists. Particles that absorbed are added to
-    // rhob (using a corrected local accumulation).
+    // At this point, most particle positions are at r_1 and u_{1/2}. Particles
+    // that had boundary interactions are now on the guard list. Process the
+    // guard lists. Particles that absorbed are added to rhob (using a corrected
+    // local accumulation).
 
-    // Boundary_p zajmuje się wysyłaniem (i odbieraniem?) cząstek od innych
-    // ranków boundary p jest długa i syfna, ale nie robi nic poza wysyłaniem
-    // cząstek z movers i odbieraniem cząsten wraz z wrzucaniem ich na tablicę p
     TIC for (int round = 0; round < num_comm_round; round++) boundary_p(
         particle_bc_list, species_list, field_array, accumulator_array);
     TOC(boundary_p, num_comm_round);
-    // wyjebywanie usuwanych cząsteczek z tablic cząstek, w miarę prosty kod
-    // wiadomo jak przenieść na gpu zwłaszcza że wyjebywanych cząsteczek powinno
-    // być nie tak dużo
-    // TODO przetestować ile ekperymentalnie właściwie ich będzie (rząd
-    // wielkości)
     LIST_FOR_EACH(sp, species_list) {
         if (sp->nm && verbose)
             WARNING(
@@ -122,26 +110,25 @@ int vpic_simulation::advance(void) {
         particle_mover_t* RESTRICT ALIGNED(16) pm = sp->pm + sp->nm - 1;
         particle_t* p0                            = sp->device_p0;
 
-        std::vector<particle_t> particles = get_particles_from_device(p0, sp->np, movers);
+        std::vector<particle_t> particles =
+            get_particles_from_device(p0, sp->np, movers);
         int cnt = 0;
         for (; nm; nm--, pm--) {
-            particle_t p = particles[cnt++];
+            particle_t p  = particles[cnt++];
             int32_t voxel = p.i;
             voxel >>= 3;
             p.i = voxel;
             // accumulate the particle's charge to the mesh
             accumulate_rhob(field_array->f, &p, sp->g, sp->q);
-            
+
             sp->np--;  // decrement the number of particles
         }
         sp->nm = 0;
     }
 
-    // At this point, all particle positions are at r_1 and u_{1/2} (cokolwiek
-    // to kurwa znaczy), the guard lists are empty and the accumulators on each
-    // processor are current (cokolwiek to kurwa znaczy). Convert the
-    // accumulators into currents. co kurwa robią akumulatory? (chyba akumulują
-    // pola z cząsteczek? idk)
+    // At this point, all particle positions are at r_1 and u_{1/2}, the guard
+    // lists are empty and the accumulators on each processor are current.
+    // Convert the accumulators into currents.
 
     TIC FAK->clear_jf(field_array);
     TOC(clear_jf, 1);
@@ -162,7 +149,7 @@ int vpic_simulation::advance(void) {
     TOC(user_current_injection, 1);
 
     // Half advance the magnetic field from B_0 to B_{1/2}
-    // czy advance_b i advance_e dotykają cząstek?
+
     TIC FAK->advance_b(field_array, 0.5);
     TOC(advance_b, 1);
 
@@ -185,7 +172,6 @@ int vpic_simulation::advance(void) {
 
     // Divergence clean e
 
-    // to się odbywa raz na kilka iteracji więc potencjalnie może być wolne
     if ((clean_div_e_interval > 0) && ((step() % clean_div_e_interval) == 0)) {
         if (rank() == 0)
             MESSAGE(("Divergence cleaning electric field"));
@@ -193,7 +179,6 @@ int vpic_simulation::advance(void) {
         TIC FAK->clear_rhof(field_array);
         TOC(clear_rhof, 1);
 
-        // accumulate_rho_p to redukcja ładunku do tablicy pól łatwo na gpu TODO
         if (species_list)
             TIC LIST_FOR_EACH(sp, species_list)
                 accumulate_rho_p(field_array, sp);
@@ -218,7 +203,6 @@ int vpic_simulation::advance(void) {
     }
 
     // Divergence clean b
-    // to się odbywa raz na kilka iteracji więc może być wolne
     if ((clean_div_b_interval > 0) && ((step() % clean_div_b_interval) == 0)) {
         if (rank() == 0)
             MESSAGE(("Divergence cleaning magnetic field"));
@@ -268,7 +252,6 @@ int vpic_simulation::advance(void) {
     }
 
     // Let the user compute diagnostics
-    // tu potencjalnie też user może coś zepsuć
     TIC user_diagnostics();
     TOC(user_diagnostics, 1);
 

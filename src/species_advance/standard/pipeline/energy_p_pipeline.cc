@@ -32,8 +32,7 @@ void energy_p_pipeline_scalar(energy_p_pipeline_args_t* RESTRICT args) {
 
     // Process particles quads for this pipeline.
 
-    args->en[0] =
-        energy_p_pipeline_cuda(p, args->np, f, qdt_2mc, msp);
+    args->en[0] = energy_p_pipeline_cuda(p, args->np, f, qdt_2mc, msp);
 
     CUDA_CHECK(cudaFree(f));
 }
