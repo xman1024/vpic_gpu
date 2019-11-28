@@ -28,7 +28,7 @@ int vpic_simulation::advance(void) {
     PERF_START(step);
 
     if (rank() == 0)
-        printf("Step %d out of %d\n", step(), num_step);
+        printf("Step %ld out of %d\n", step(), num_step);
 
     // Sort the particles for performance if desired.
 

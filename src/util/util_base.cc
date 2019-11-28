@@ -14,6 +14,8 @@
 #include <stdio.h>   // For vfprintf
 #include <string.h>  // for strstr
 
+#include <string>
+
 #include "../cuda/utils.h"
 
 /****************************************************************************/
@@ -83,10 +85,10 @@ void detect_old_style_arguments(int* pargc, char*** pargv) {
 
     for (i = 0; i < (*pargc); i++) {
         const int num_prefix_keys = 2;
-        char* prefix_keys[num_prefix_keys];
+        std::string prefix_keys[num_prefix_keys];
 
         const int num_match_keys = 1;
-        char* match_keys[num_match_keys];
+        std::string match_keys[num_match_keys];
 
         prefix_keys[0] = "-tpp";
         prefix_keys[1] = "-restore";
@@ -101,13 +103,13 @@ void detect_old_style_arguments(int* pargc, char*** pargv) {
         // Check for invalid prefixes
         for (j = 0; j < num_prefix_keys; j++) {
             // Search for tpp
-            if (string_starts_with(arg, prefix_keys[j])) {
+            if (string_starts_with(arg, prefix_keys[j].c_str())) {
                 char output_message[64];
 
                 sprintf(output_message,
                         "Aborting. Single dashed flag %1$s is invalid (needs "
                         "'-%1$s').",
-                        prefix_keys[j]);
+                        prefix_keys[j].c_str());
 
                 WARNING(("Input Flags Look Like They Are Using Legacy Style."));
                 ERROR((output_message));
@@ -116,12 +118,12 @@ void detect_old_style_arguments(int* pargc, char*** pargv) {
 
         // Search for restore, single dash
         for (j = 0; j < num_match_keys; j++) {
-            if (string_matches(arg, match_keys[j])) {
+            if (string_matches(arg, match_keys[j].c_str())) {
                 // TODO: This could be tightened up more, as it disallows the
                 // use of a file called 'restart'
                 char output_message[64];
                 sprintf(output_message, "Old Argument Syntax Detected: %s",
-                        match_keys[j]);
+                        match_keys[j].c_str());
 
                 WARNING(("Input Flags Look Like They Are Using Legacy Style."));
                 ERROR((output_message));
