@@ -183,8 +183,6 @@ void run_kernel(particle_t* device_p0,  // size n
     const int accumulator_size  = POW2_CEIL(grid_size, 2);
     const int interpolator_size = grid_size;
 
-    int moved = 0;
-
     static interpolator_t* device_f0        = nullptr;
     static accumulator_t* device_a0         = nullptr;
     static particle_mover_t* device_pmovers = nullptr;
@@ -241,7 +239,6 @@ void run_kernel(particle_t* device_p0,  // size n
                                          device_a0, n, device_moved, qdt_2mc,
                                          cdt_dx, cdt_dy, cdt_dz, qsp);
     CUDA_CHECK(cudaDeviceSynchronize());
-    moved = device_fetch_var(device_moved);
 
     cuda_move_p(device_p0, device_pmovers, n, device_a0, device_neighbours, qsp,
                 device_moved_2, device_pm, g->rangeh, g->rangel);
