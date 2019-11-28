@@ -225,7 +225,6 @@ void vpic_simulation::dump_fields(const char* fbase, int ftag) {
         ERROR(("File close failed on dump fields!!!"));
 }
 
-#if 0
 void vpic_simulation::dump_hydro(const char* sp_name,
                                  const char* fbase,
                                  int ftag) {
@@ -274,7 +273,6 @@ void vpic_simulation::dump_hydro(const char* sp_name,
     if (fileIO.close())
         ERROR(("File close failed on dump hydro!!!"));
 }
-#endif
 
 void vpic_simulation::dump_particles(const char* sp_name,
                                      const char* fbase,
