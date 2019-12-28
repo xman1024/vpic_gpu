@@ -1,3 +1,10 @@
+/*
+ * Written by:
+ *   Iwona Kotlarska, Łukasz Kondraciuk
+ *   University of Warsaw
+ *   2019 - port to CUDA for SC19 student cluster competition
+ *
+ */
 #include <cuda_runtime.h>
 
 #include "energy_p.h"

@@ -5,6 +5,9 @@
  *   Applied Physics Division
  *   Los Alamos National Lab
  * March/April 2004 - Original version
+ *   Iwona Kotlarska, Łukasz Kondraciuk
+ *   University of Warsaw
+ *   2019 - port to CUDA for SC19 student cluster competition
  *
  */
 

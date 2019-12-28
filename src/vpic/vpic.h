@@ -19,10 +19,10 @@
 #include <vector>
 
 #include "../boundary/boundary.h"
-#include "../cuda/move_p.h"
 #include "../cuda/utils.h"
 #include "../emitter/emitter.h"
 // FIXME: INCLUDES ONCE ALL IS CLEANED UP
+#include "../species_advance/species_advance.h"
 #include "../util/bitfield.h"
 #include "../util/checksum.h"
 #include "../util/io/FileIO.h"

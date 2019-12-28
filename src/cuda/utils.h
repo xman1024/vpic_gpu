@@ -1,3 +1,10 @@
+/*
+ * Written by:
+ *   Iwona Kotlarska, Łukasz Kondraciuk
+ *   University of Warsaw
+ *   2019 - port to CUDA for SC19 student cluster competition
+ *
+ */
 #ifndef __CUDA_UTILS__H__
 #define __CUDA_UTILS__H__
 

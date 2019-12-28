@@ -1,7 +1,13 @@
+/*
+ * Written by:
+ *   Iwona Kotlarska, Łukasz Kondraciuk
+ *   University of Warsaw
+ *   2019 - port to CUDA for SC19 student cluster competition
+ *
+ */
 #include "../util/util_base.h"
 #include "advance_particle.h"
 #include "debug.h"
-#include "move_p.h"
 #include "perf_measure.h"
 #include "utils.h"
 
